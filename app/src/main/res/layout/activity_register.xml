@@ -8,6 +8,18 @@
     tools:context=".SignIn.RegisterActivity">
 
     <EditText
+        android:id="@+id/et_register_uname"
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:hint="Enter your Name"
+        android:gravity="center"
+        app:layout_constraintVertical_bias="0.4"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/et_register_email"
+        ></EditText>
+
+    <EditText
         android:id="@+id/et_register_email"
         android:layout_width="250dp"
         android:layout_height="50dp"
