@@ -14,7 +14,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        ></ImageView>
+        />
 
     <EditText
         android:id="@+id/et_display_name"
@@ -25,5 +25,6 @@
         app:layout_constraintTop_toBottomOf="@id/imv_propic"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        ></EditText>
+        />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
