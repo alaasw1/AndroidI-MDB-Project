@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SignIn.SignInActivity">
+    <EditText
+        android:id="@+id/et_sign_in_email"
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:hint="Enter your Email ID"
+        android:inputType="textEmailAddress"
+        android:gravity="center"
+        app:layout_constraintVertical_bias="0.4"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+    <EditText
+        android:id="@+id/et_sign_in_passwd"
+        android:layout_width="250dp"
+        android:layout_height="50dp"
+        android:hint="Enter your Password"
+        android:inputType="textPassword"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/et_sign_in_email"
+        />
+
+    <Button
+        android:id="@+id/btn_sign_in_user"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:text="SIGN IN"
+        android:layout_marginTop="10dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/et_sign_in_passwd"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
