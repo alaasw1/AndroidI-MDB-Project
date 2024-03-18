@@ -20,7 +20,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class HomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
-    TextView tv_uid;
+//    TextView tv_uid;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,7 +39,7 @@ public class HomeActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser(); // Get the current user
 
-        tv_uid = findViewById(R.id.tv_uid);
+//        tv_uid = findViewById(R.id.tv_uid);
 //        tv_uid.setText(mAuth.getCurrentUser().getUid().toString());
 //
 //        if (currentUser != null) {

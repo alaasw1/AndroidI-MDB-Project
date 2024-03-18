@@ -1,84 +1,133 @@
 package com.example.android_imdb_project.SignIn;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.android_imdb_project.R;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class RegisterActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
-    EditText et_register_uname;
-    EditText et_register_email;
-    EditText et_register_passwd;
-    Button btn_register_user;
+    private EditText et_register_uname, et_register_email, et_register_passwd;
+    private Button btn_register_user;
+    private ImageView profileImageView;
+    private Uri imageUri = null;
+
+    private final ActivityResultLauncher<Intent> galleryActivityResultLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    imageUri = result.getData().getData();
+                    profileImageView.setImageURI(imageUri);
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
 
+        mAuth = FirebaseAuth.getInstance();
         et_register_uname = findViewById(R.id.et_register_uname);
         et_register_email = findViewById(R.id.et_register_email);
         et_register_passwd = findViewById(R.id.et_register_passwd);
         btn_register_user = findViewById(R.id.btn_register_user);
+        profileImageView = findViewById(R.id.profileImageView);
 
-        btn_register_user.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(et_register_uname.getText().toString().isEmpty()){
-                    et_register_uname.setError("Please Enter Your Name");
-                }else if(et_register_email.getText().toString().isEmpty()){
-                    et_register_email.setError("Please Enter Email ID");
-                }else if(et_register_passwd.getText().toString().isEmpty()){
-                    et_register_passwd.setError("Please Enter Password");
-                }else{
-                    mAuth.createUserWithEmailAndPassword(et_register_email.getText().toString(),
-                            et_register_passwd.getText().toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if(task.isSuccessful()){
-                                UserProfileChangeRequest userProfileChangeRequest = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(et_register_uname.getText().toString()).setPhotoUri(Uri.parse("https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg"))
-                                        .build();
-                                mAuth.getCurrentUser().updateProfile(userProfileChangeRequest).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if(task.isSuccessful()) {
-                                            Toast.makeText(getApplicationContext(),mAuth.getCurrentUser().getUid(),Toast.LENGTH_LONG).show();
-                                        }
-                                    }
-                                });
-                                Toast.makeText(getApplicationContext(),"User Successfully Registered",Toast.LENGTH_LONG).show();
-                            }else{
-                                Toast.makeText(getApplicationContext(),"Registration Failed: " + task.getException().getMessage(),Toast.LENGTH_LONG).show();
-                            }
-                        }
-                    });
+        profileImageView.setOnClickListener(view -> {
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            galleryActivityResultLauncher.launch(galleryIntent);
+        });
+
+        btn_register_user.setOnClickListener(view -> {
+            String userName = et_register_uname.getText().toString().trim();
+            String userEmail = et_register_email.getText().toString().trim();
+            String userPasswd = et_register_passwd.getText().toString().trim();
+            if (validateInputs(userName, userEmail, userPasswd)) {
+                registerUser(userName, userEmail, userPasswd);
+            }
+        });
+    }
+
+    private boolean validateInputs(String userName, String userEmail, String userPasswd) {
+        if (userName.isEmpty() || userEmail.isEmpty() || userPasswd.isEmpty()) {
+            if (userName.isEmpty()) {
+                et_register_uname.setError("Please Enter Your Name");
+            }
+            if (userEmail.isEmpty()) {
+                et_register_email.setError("Please Enter Email ID");
+            }
+            if (userPasswd.isEmpty()) {
+                et_register_passwd.setError("Please Enter Password");
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private void registerUser(String userName, String userEmail, String userPasswd) {
+        mAuth.createUserWithEmailAndPassword(userEmail, userPasswd).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                if (firebaseUser != null && imageUri != null) {
+                    uploadImageToFirebaseStorage(firebaseUser, imageUri, userName);
+                } else {
+                    Log.e("RegisterActivity", "Registration succeeded, but user or imageUri is null");
+                    // Handle case where there's no image selected or user creation failed
                 }
+            } else {
+                Toast.makeText(RegisterActivity.this, "Registration failed: " + (task.getException() != null ? task.getException().getMessage() : "Unknown Error"), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void uploadImageToFirebaseStorage(FirebaseUser firebaseUser, Uri imageUri, String userName) {
+        Log.d("RegisterActivity", "Attempting to upload image: " + imageUri);
+        StorageReference profileImageRef = FirebaseStorage.getInstance().getReference("profilepics/" + firebaseUser.getUid() + ".jpg");
+
+        profileImageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
+            Log.d("RegisterActivity", "Image upload successful");
+            profileImageRef.getDownloadUrl().addOnSuccessListener(downloadUri -> {
+                Log.d("RegisterActivity", "Got download URL: " + downloadUri);
+                updateUserProfile(firebaseUser, downloadUri, userName);
+            }).addOnFailureListener(e -> {
+                Log.e("RegisterActivity", "Error getting download URL", e);
+            });
+        }).addOnFailureListener(e -> {
+            Log.e("RegisterActivity", "Error uploading image", e);
+        });
+    }
+
+    private void updateUserProfile(FirebaseUser user, Uri photoUri, String name) {
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .setPhotoUri(photoUri)
+                .build();
+
+        user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d("RegisterActivity", "User profile updated.");
+                Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.e("RegisterActivity", "Error updating user profile", task.getException());
+                Toast.makeText(RegisterActivity.this, "User registration successful but failed to update profile photo", Toast.LENGTH_LONG).show();
             }
         });
     }
