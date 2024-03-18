@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -30,6 +31,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Button btn_register_user;
     private ImageView profileImageView;
     private Uri imageUri = null;
+    private TextView tv_go_to_sign_in;
 
     private final ActivityResultLauncher<Intent> galleryActivityResultLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -50,6 +52,7 @@ public class RegisterActivity extends AppCompatActivity {
         et_register_passwd = findViewById(R.id.et_register_passwd);
         btn_register_user = findViewById(R.id.btn_register_user);
         profileImageView = findViewById(R.id.profileImageView);
+        tv_go_to_sign_in = findViewById(R.id.tv_go_to_sign_in);
 
         profileImageView.setOnClickListener(view -> {
             Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -64,6 +67,11 @@ public class RegisterActivity extends AppCompatActivity {
                 registerUser(userName, userEmail, userPasswd);
             }
         });
+
+        tv_go_to_sign_in.setOnClickListener(view -> {
+            startActivity(new Intent(RegisterActivity.this, SignInActivity.class));
+        });
+
     }
 
     private boolean validateInputs(String userName, String userEmail, String userPasswd) {

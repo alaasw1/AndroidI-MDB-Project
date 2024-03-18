@@ -5,7 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SignIn.SignInActivity">
+    tools:context=".SignIn.SignInActivity"
+    >
     <EditText
         android:id="@+id/et_sign_in_email"
         android:layout_width="250dp"
@@ -43,6 +44,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/et_sign_in_passwd"
         />
+
     <TextView
         android:id="@+id/tv_go_to_register"
         android:layout_width="wrap_content"

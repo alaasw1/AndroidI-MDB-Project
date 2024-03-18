@@ -71,4 +71,19 @@
         app:layout_constraintTop_toBottomOf="@id/et_register_passwd"
         />
 
+    <TextView
+        android:id="@+id/tv_go_to_sign_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go to Sign In"
+        android:textSize="16sp"
+        android:textColor="@android:color/holo_blue_light"
+        app:layout_constraintTop_toBottomOf="@id/btn_register_user"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="8dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
