@@ -125,10 +125,16 @@ public class RegisterActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 Log.d("RegisterActivity", "User profile updated.");
                 Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                //navigate to SignInActivity
+                Intent intent = new Intent(RegisterActivity.this, SignInActivity.class);
+                startActivity(intent);
+                //close the current activity
+                finish();
             } else {
                 Log.e("RegisterActivity", "Error updating user profile", task.getException());
                 Toast.makeText(RegisterActivity.this, "User registration successful but failed to update profile photo", Toast.LENGTH_LONG).show();
             }
         });
     }
+
 }

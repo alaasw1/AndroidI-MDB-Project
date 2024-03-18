@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -29,6 +30,7 @@ public class SignInActivity extends AppCompatActivity {
     EditText et_sign_in_email;
     EditText et_sign_in_passwd;
     Button btn_sign_in_user;
+    TextView tvGoToRegister;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +51,7 @@ public class SignInActivity extends AppCompatActivity {
         et_sign_in_email = findViewById(R.id.et_sign_in_email);
         et_sign_in_passwd = findViewById(R.id.et_sign_in_passwd);
         btn_sign_in_user = findViewById(R.id.btn_sign_in_user);
+        tvGoToRegister = findViewById(R.id.tv_go_to_register);
 
         btn_sign_in_user.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,6 +75,10 @@ public class SignInActivity extends AppCompatActivity {
                     });
                 }
             }
+        });
+
+        tvGoToRegister.setOnClickListener(view -> {
+            startActivity(new Intent(SignInActivity.this, RegisterActivity.class));
         });
     }
 }

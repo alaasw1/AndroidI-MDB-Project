@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     Button btn_sign_in;
     Button btn_register;
-    Button btn_profile;
+//    Button btn_profile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         btn_sign_in = findViewById(R.id.btn_sign_in);
         btn_register = findViewById(R.id.btn_register);
-        btn_profile = findViewById(R.id.btn_profile);
+//        btn_profile = findViewById(R.id.btn_profile);
 
         if(mAuth.getCurrentUser() == null){
             Toast.makeText(getApplicationContext(),"No User Found!",Toast.LENGTH_LONG).show();
@@ -62,17 +62,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btn_profile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mAuth.getCurrentUser() == null){
-                    Toast.makeText(getApplicationContext(),"No User Found!",Toast.LENGTH_LONG).show();
-                }else{
-                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                    startActivity(intent);
-                }
-            }
-        });
+//        btn_profile.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if(mAuth.getCurrentUser() == null){
+//                    Toast.makeText(getApplicationContext(),"No User Found!",Toast.LENGTH_LONG).show();
+//                }else{
+//                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+//                    startActivity(intent);
+//                }
+//            }
+//        });
     }
 
 }
