@@ -39,10 +39,11 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+            return WindowInsetsCompat.CONSUMED;
         });
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -133,6 +134,4 @@ public class HomeActivity extends AppCompatActivity {
         movie.put("photoUrl", photoUrl);
         return movie;
     }
-
-
 }
