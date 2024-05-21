@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
 
@@ -72,17 +73,35 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             db.collection("users")
                     .document(currentUser.getUid())
                     .collection(collectionName)
-                    .add(movie)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                        @Override
-                        public void onSuccess(DocumentReference documentReference) {
-                            Log.d(TAG, "Movie added to " + collectionName + " with ID: " + documentReference.getId());
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.w(TAG, "Error adding movie to " + collectionName, e);
+                    .whereEqualTo("name", movie.getName())
+                    .whereEqualTo("releaseDate", movie.getReleaseDate())
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            QuerySnapshot querySnapshot = task.getResult();
+                            if (querySnapshot.isEmpty()) {
+                                // Movie does not exist in the collection, add it
+                                db.collection("users")
+                                        .document(currentUser.getUid())
+                                        .collection(collectionName)
+                                        .add(movie)
+                                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                            @Override
+                                            public void onSuccess(DocumentReference documentReference) {
+                                                Log.d(TAG, "Movie added to " + collectionName + " with ID: " + documentReference.getId());
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.w(TAG, "Error adding movie to " + collectionName, e);
+                                            }
+                                        });
+                            } else {
+                                Log.d(TAG, "Movie already exists in " + collectionName);
+                            }
+                        } else {
+                            Log.w(TAG, "Error checking movie in " + collectionName, task.getException());
                         }
                     });
         } else {
