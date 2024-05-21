@@ -148,7 +148,7 @@ public class MovieListFragment extends Fragment {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
                 String movieName = input.getText().toString();
-                checkAndAddMovieByName(movieName);
+                addMovieByName(movieName);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -159,25 +159,6 @@ public class MovieListFragment extends Fragment {
         });
 
         builder.show();
-    }
-
-    private void checkAndAddMovieByName(String movieName) {
-        String lowerCaseMovieName = movieName.toLowerCase();
-        db.collection("movies")
-                .whereEqualTo("nameLowerCase", lowerCaseMovieName)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot result = task.getResult();
-                        if (result != null && result.isEmpty()) {
-                            addMovieByName(movieName);
-                        } else {
-                            getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Movie already exists in the database", Toast.LENGTH_SHORT).show());
-                        }
-                    } else {
-                        getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Error checking for movie existence", Toast.LENGTH_SHORT).show());
-                    }
-                });
     }
 
     private void addMovieByName(String movieName) {
@@ -207,17 +188,7 @@ public class MovieListFragment extends Fragment {
                     String photoUrl = "https://image.tmdb.org/t/p/w500" + movieJson.getString("poster_path");
 
                     Movie movie = new Movie(name, releaseDate, description, rate, photoUrl);
-                    Map<String, Object> movieMap = createMovieMap(movie);
-                    movieMap.put("nameLowerCase", name.toLowerCase());
-                    db.collection("movies").add(movieMap).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            getActivity().runOnUiThread(() -> {
-                                movieList.add(movie);
-                                filterMovies(editTextFilter.getText().toString());
-                                Toast.makeText(getContext(), "Movie added successfully", Toast.LENGTH_SHORT).show();
-                            });
-                        }
-                    });
+                    checkIfMovieExistsAndAdd(movie);
                 } else {
                     getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Movie not found", Toast.LENGTH_SHORT).show());
                 }
@@ -226,6 +197,35 @@ public class MovieListFragment extends Fragment {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    private void checkIfMovieExistsAndAdd(Movie movie) {
+        String lowerCaseMovieName = movie.getName().toLowerCase();
+        db.collection("movies")
+                .whereEqualTo("nameLowerCase", lowerCaseMovieName)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot result = task.getResult();
+                        if (result != null && result.isEmpty()) {
+                            Map<String, Object> movieMap = createMovieMap(movie);
+                            movieMap.put("nameLowerCase", lowerCaseMovieName);
+                            db.collection("movies").add(movieMap).addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    getActivity().runOnUiThread(() -> {
+                                        movieList.add(movie);
+                                        filterMovies(editTextFilter.getText().toString());
+                                        Toast.makeText(getContext(), "Movie added successfully", Toast.LENGTH_SHORT).show();
+                                    });
+                                }
+                            });
+                        } else {
+                            getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Movie already exists in the database", Toast.LENGTH_SHORT).show());
+                        }
+                    } else {
+                        getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Error checking for movie existence", Toast.LENGTH_SHORT).show());
+                    }
+                });
     }
 
     private void addMoviesOnce() {
@@ -322,6 +322,7 @@ public class MovieListFragment extends Fragment {
         movieMap.put("description", movie.getDescription());
         movieMap.put("rate", movie.getRate());
         movieMap.put("photoUrl", movie.getPhotoUrl());
+        movieMap.put("nameLowerCase", movie.getName().toLowerCase());
         return movieMap;
     }
 }
