@@ -3,6 +3,7 @@ package com.example.android_imdb_project.Fragments;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -22,8 +23,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.android_imdb_project.R;
 import com.example.android_imdb_project.adapters.MovieAdapter;
 import com.example.android_imdb_project.models.Movie;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,18 +38,22 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MovieListFragment extends Fragment {
     private static final String TAG = "MovieListFragment";
     private static final String TMDB_API_KEY = "9b78a0198d671648f859770a80094412";
+    private static final int RETRY_DELAY_MS = 1000;
     private RecyclerView recyclerView;
     private MovieAdapter adapter;
     private List<Movie> movieList = new ArrayList<>();
     private List<Movie> filteredMovieList = new ArrayList<>();
     private FirebaseFirestore db;
     private EditText editTextFilter;
+    private Handler handler = new Handler();
 
     @Nullable
     @Override
@@ -77,6 +86,9 @@ public class MovieListFragment extends Fragment {
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
+        // Add example movies if the collection is empty
+        addMoviesOnce();
+
         // Fetch movies from Firestore
         fetchMovies();
 
@@ -88,15 +100,21 @@ public class MovieListFragment extends Fragment {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        movieList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Movie movie = document.toObject(Movie.class);
-                            Log.d(TAG, "Movie URL: " + movie.getPhotoUrl());
-                            movieList.add(movie);
+                        QuerySnapshot result = task.getResult();
+                        if (result != null && !result.isEmpty()) {
+                            movieList.clear();
+                            for (QueryDocumentSnapshot document : result) {
+                                Movie movie = document.toObject(Movie.class);
+                                Log.d(TAG, "Movie URL: " + movie.getPhotoUrl());
+                                movieList.add(movie);
+                            }
+                            filteredMovieList.clear();
+                            filteredMovieList.addAll(movieList);
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            Log.d(TAG, "No movies found, retrying in 1 second.");
+                            handler.postDelayed(this::fetchMovies, RETRY_DELAY_MS);
                         }
-                        filteredMovieList.clear();
-                        filteredMovieList.addAll(movieList);
-                        adapter.notifyDataSetChanged();
                     } else {
                         Log.w(TAG, "Error getting documents.", task.getException());
                     }
@@ -187,5 +205,89 @@ public class MovieListFragment extends Fragment {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    private void addMoviesOnce() {
+        db.collection("movies").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                QuerySnapshot querySnapshot = task.getResult();
+                if (querySnapshot != null && querySnapshot.isEmpty()) {
+                    Log.d(TAG, "Adding example movies to Firestore.");
+
+                    // Example movies data
+                    List<Map<String, Object>> movies = new ArrayList<>();
+
+                    movies.add(createMovie("The Shawshank Redemption", "1994-09-23", "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.", 9.3, "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg"));
+                    movies.add(createMovie("The Godfather", "1972-03-24", "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.", 9.2, "https://image.tmdb.org/t/p/w500/iVZ3JAcAjmguGPnRNfWFOtLHOuY.jpg"));
+                    movies.add(createMovie("The Dark Knight", "2008-07-18", "When the menace known as the Joker emerges from his mysterious past, he wreaks havoc and chaos on the people of Gotham.", 9.0, "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg"));
+                    movies.add(createMovie("The Godfather: Part II", "1974-12-20", "The early life and career of Vito Corleone in 1920s New York City is portrayed while his son, Michael, expands and tightens his grip on the family crime syndicate.", 9.0, "https://image.tmdb.org/t/p/w500/hek3koDUyRQk7FIhPXsa6mT2Zc3.jpg"));
+                    movies.add(createMovie("12 Angry Men", "1957-04-10", "A jury holdout attempts to prevent a miscarriage of justice by forcing his colleagues to reconsider the evidence.", 8.9, "https://image.tmdb.org/t/p/w500/ow3wq89wM8qd5X7hWKxiRfsFf9C.jpg"));
+                    movies.add(createMovie("Schindler's List", "1993-12-15", "In German-occupied Poland during World War II, industrialist Oskar Schindler gradually becomes concerned for his Jewish workforce after witnessing their persecution by the Nazis.", 8.9, "https://image.tmdb.org/t/p/w500/c8Ass7acuOe4za6DhSattE359gr.jpg"));
+                    movies.add(createMovie("The Lord of the Rings: The Return of the King", "2003-12-17", "Gandalf and Aragorn lead the World of Men against Sauron's army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.", 8.9, "https://image.tmdb.org/t/p/w500/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg"));
+                    movies.add(createMovie("Pulp Fiction", "1994-10-14", "The lives of two mob hitmen, a boxer, a gangster's wife, and a pair of diner bandits intertwine in four tales of violence and redemption.", 8.9, "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg"));
+                    movies.add(createMovie("The Good, the Bad and the Ugly", "1966-12-23", "A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.", 8.8, "https://image.tmdb.org/t/p/w500/bX2xnavhMYjWDoZp1VM6VnU1xwe.jpg"));
+                    movies.add(createMovie("The Lord of the Rings: The Fellowship of the Ring", "2001-12-19", "A meek Hobbit from the Shire and eight companions set out on a journey to destroy the powerful One Ring and save Middle-earth from the Dark Lord Sauron.", 8.8, "https://image.tmdb.org/t/p/w500/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg"));
+                    movies.add(createMovie("The Lord of the Rings: The Two Towers", "2002-12-18", "While Frodo and Sam edge closer to Mordor with the help of the shifty Gollum, the divided fellowship makes a stand against Sauron's new ally, Saruman, and his hordes of Isengard.", 8.8, "https://image.tmdb.org/t/p/w500/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg"));
+                    movies.add(createMovie("Star Wars: Episode V - The Empire Strikes Back", "1980-05-21", "After the Rebels are overpowered by the Empire on their newly established base, Luke Skywalker begins Jedi training with Yoda, while his friends are pursued across the galaxy by Darth Vader.", 8.7, "https://image.tmdb.org/t/p/w500/2l05cFWJacyIsTpsqSgH0wQXe4V.jpg"));
+                    movies.add(createMovie("The Matrix", "1999-03-31", "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.", 8.7, "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg"));
+                    movies.add(createMovie("Goodfellas", "1990-09-12", "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito in the Italian-American crime syndicate.", 8.7, "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg"));
+                    movies.add(createMovie("One Flew Over the Cuckoo's Nest", "1975-11-19", "A criminal pleads insanity and is admitted to a mental institution, where he rebels against the oppressive nurse and rallies up the scared patients.", 8.7, "https://image.tmdb.org/t/p/w500/3jcbDmRFiQ83drXNOvRDeKHxS0C.jpg"));
+                    movies.add(createMovie("Se7en", "1995-09-22", "Two detectives, a rookie and a veteran, hunt a serial killer who uses the seven deadly sins as his motives.", 8.6, "https://image.tmdb.org/t/p/w500/69Sns8WoET6CfaYlIkHbla4l7nC.jpg"));
+
+                    // Add movies to Firestore
+                    for (Map<String, Object> movie : movies) {
+                        addMovieIfNotExists(movie);
+                    }
+
+                    // Fetch movies after adding example movies
+                    fetchMovies();
+                } else {
+                    Log.d(TAG, "Movies already exist in Firestore.");
+                }
+            } else {
+                Log.e(TAG, "Error fetching movies: ", task.getException());
+            }
+        });
+    }
+
+    private void addMovieIfNotExists(Map<String, Object> movie) {
+        db.collection("movies")
+                .whereEqualTo("name", movie.get("name"))
+                .whereEqualTo("releaseDate", movie.get("releaseDate"))
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult().isEmpty()) {
+                            db.collection("movies")
+                                    .add(movie)
+                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                        @Override
+                                        public void onSuccess(DocumentReference documentReference) {
+                                            Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w(TAG, "Error adding document", e);
+                                        }
+                                    });
+                        } else {
+                            Log.d(TAG, "Movie already exists in Firestore: " + movie.get("name"));
+                        }
+                    } else {
+                        Log.w(TAG, "Error checking for movie existence: ", task.getException());
+                    }
+                });
+    }
+
+    private Map<String, Object> createMovie(String name, String releaseDate, String description, double rate, String photoUrl) {
+        Map<String, Object> movie = new HashMap<>();
+        movie.put("name", name);
+        movie.put("releaseDate", releaseDate);
+        movie.put("description", description);
+        movie.put("rate", rate);
+        movie.put("photoUrl", photoUrl);
+        return movie;
     }
 }
