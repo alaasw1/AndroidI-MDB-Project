@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -88,33 +89,16 @@ public class HomeActivity extends AppCompatActivity {
                     movies.add(createMovie("Pulp Fiction", "1994-10-14", "The lives of two mob hitmen, a boxer, a gangster's wife, and a pair of diner bandits intertwine in four tales of violence and redemption.", 8.9, "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg"));
                     movies.add(createMovie("The Good, the Bad and the Ugly", "1966-12-23", "A bounty hunting scam joins two men in an uneasy alliance against a third in a race to find a fortune in gold buried in a remote cemetery.", 8.8, "https://image.tmdb.org/t/p/w500/bX2xnavhMYjWDoZp1VM6VnU1xwe.jpg"));
                     movies.add(createMovie("The Lord of the Rings: The Fellowship of the Ring", "2001-12-19", "A meek Hobbit from the Shire and eight companions set out on a journey to destroy the powerful One Ring and save Middle-earth from the Dark Lord Sauron.", 8.8, "https://image.tmdb.org/t/p/w500/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg"));
-                    movies.add(createMovie("Fight Club", "1999-10-15", "An insomniac office worker and a devil-may-care soap maker form an underground fight club that evolves into much more.", 8.8, "https://image.tmdb.org/t/p/w500/adw6Lq9FiC9zjYEpOqfq03ituwp.jpg"));
-                    movies.add(createMovie("Forrest Gump", "1994-07-06", "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal, and other historical events unfold from the perspective of an Alabama man with an IQ of 75.", 8.8, "https://image.tmdb.org/t/p/w500/yE5d3BUhE8hCnkMUJOo1QDoOGNz.jpg"));
-                    movies.add(createMovie("Inception", "2010-07-16", "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.", 8.8, "https://image.tmdb.org/t/p/w500/qmDpIHrmpJINaRKAfWQfftjCdyi.jpg"));
                     movies.add(createMovie("The Lord of the Rings: The Two Towers", "2002-12-18", "While Frodo and Sam edge closer to Mordor with the help of the shifty Gollum, the divided fellowship makes a stand against Sauron's new ally, Saruman, and his hordes of Isengard.", 8.8, "https://image.tmdb.org/t/p/w500/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg"));
                     movies.add(createMovie("Star Wars: Episode V - The Empire Strikes Back", "1980-05-21", "After the Rebels are overpowered by the Empire on their newly established base, Luke Skywalker begins Jedi training with Yoda, while his friends are pursued across the galaxy by Darth Vader.", 8.7, "https://image.tmdb.org/t/p/w500/2l05cFWJacyIsTpsqSgH0wQXe4V.jpg"));
                     movies.add(createMovie("The Matrix", "1999-03-31", "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.", 8.7, "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg"));
                     movies.add(createMovie("Goodfellas", "1990-09-12", "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito in the Italian-American crime syndicate.", 8.7, "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg"));
                     movies.add(createMovie("One Flew Over the Cuckoo's Nest", "1975-11-19", "A criminal pleads insanity and is admitted to a mental institution, where he rebels against the oppressive nurse and rallies up the scared patients.", 8.7, "https://image.tmdb.org/t/p/w500/3jcbDmRFiQ83drXNOvRDeKHxS0C.jpg"));
                     movies.add(createMovie("Se7en", "1995-09-22", "Two detectives, a rookie and a veteran, hunt a serial killer who uses the seven deadly sins as his motives.", 8.6, "https://image.tmdb.org/t/p/w500/69Sns8WoET6CfaYlIkHbla4l7nC.jpg"));
-                    movies.add(createMovie("Seven Samurai", "1954-04-26", "A poor village under attack by bandits recruits seven unemployed samurai to help them defend themselves.", 8.6, "https://image.tmdb.org/t/p/w500/8OKmBV5BUFzMO27KWpDRuZUl5jz.jpg"));
 
                     // Add movies to Firestore
                     for (Map<String, Object> movie : movies) {
-                        db.collection("movies")
-                                .add(movie)
-                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                    @Override
-                                    public void onSuccess(DocumentReference documentReference) {
-                                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w(TAG, "Error adding document", e);
-                                    }
-                                });
+                        addMovieIfNotExists(movie);
                     }
                 } else {
                     Log.d(TAG, "Movies already exist in Firestore.");
@@ -123,6 +107,37 @@ public class HomeActivity extends AppCompatActivity {
                 Log.e(TAG, "Error fetching movies: ", task.getException());
             }
         });
+    }
+
+    private void addMovieIfNotExists(Map<String, Object> movie) {
+        db.collection("movies")
+                .whereEqualTo("name", movie.get("name"))
+                .whereEqualTo("releaseDate", movie.get("releaseDate"))
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult().isEmpty()) {
+                            db.collection("movies")
+                                    .add(movie)
+                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                        @Override
+                                        public void onSuccess(DocumentReference documentReference) {
+                                            Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w(TAG, "Error adding document", e);
+                                        }
+                                    });
+                        } else {
+                            Log.d(TAG, "Movie already exists in Firestore: " + movie.get("name"));
+                        }
+                    } else {
+                        Log.w(TAG, "Error checking for movie existence: ", task.getException());
+                    }
+                });
     }
 
     private Map<String, Object> createMovie(String name, String releaseDate, String description, double rate, String photoUrl) {
