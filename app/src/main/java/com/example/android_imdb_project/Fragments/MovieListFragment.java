@@ -148,7 +148,7 @@ public class MovieListFragment extends Fragment {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
                 String movieName = input.getText().toString();
-                addMovieByName(movieName);
+                checkAndAddMovieByName(movieName);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -159,6 +159,25 @@ public class MovieListFragment extends Fragment {
         });
 
         builder.show();
+    }
+
+    private void checkAndAddMovieByName(String movieName) {
+        String lowerCaseMovieName = movieName.toLowerCase();
+        db.collection("movies")
+                .whereEqualTo("nameLowerCase", lowerCaseMovieName)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot result = task.getResult();
+                        if (result != null && result.isEmpty()) {
+                            addMovieByName(movieName);
+                        } else {
+                            getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Movie already exists in the database", Toast.LENGTH_SHORT).show());
+                        }
+                    } else {
+                        getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Error checking for movie existence", Toast.LENGTH_SHORT).show());
+                    }
+                });
     }
 
     private void addMovieByName(String movieName) {
@@ -188,7 +207,9 @@ public class MovieListFragment extends Fragment {
                     String photoUrl = "https://image.tmdb.org/t/p/w500" + movieJson.getString("poster_path");
 
                     Movie movie = new Movie(name, releaseDate, description, rate, photoUrl);
-                    db.collection("movies").add(movie).addOnCompleteListener(task -> {
+                    Map<String, Object> movieMap = createMovieMap(movie);
+                    movieMap.put("nameLowerCase", name.toLowerCase());
+                    db.collection("movies").add(movieMap).addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             getActivity().runOnUiThread(() -> {
                                 movieList.add(movie);
@@ -233,6 +254,7 @@ public class MovieListFragment extends Fragment {
                     movies.add(createMovie("Goodfellas", "1990-09-12", "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito in the Italian-American crime syndicate.", 8.7, "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg"));
                     movies.add(createMovie("One Flew Over the Cuckoo's Nest", "1975-11-19", "A criminal pleads insanity and is admitted to a mental institution, where he rebels against the oppressive nurse and rallies up the scared patients.", 8.7, "https://image.tmdb.org/t/p/w500/3jcbDmRFiQ83drXNOvRDeKHxS0C.jpg"));
                     movies.add(createMovie("Se7en", "1995-09-22", "Two detectives, a rookie and a veteran, hunt a serial killer who uses the seven deadly sins as his motives.", 8.6, "https://image.tmdb.org/t/p/w500/69Sns8WoET6CfaYlIkHbla4l7nC.jpg"));
+                    movies.add(createMovie("Seven Samurai", "1954-04-26", "A poor village under attack by bandits recruits seven unemployed samurai to help them defend themselves.", 8.6, "https://image.tmdb.org/t/p/w500/8OKmBV5BUFzMO27KWpDRuZUl5jz.jpg"));
 
                     // Add movies to Firestore
                     for (Map<String, Object> movie : movies) {
@@ -251,8 +273,9 @@ public class MovieListFragment extends Fragment {
     }
 
     private void addMovieIfNotExists(Map<String, Object> movie) {
+        String lowerCaseMovieName = movie.get("name").toString().toLowerCase();
         db.collection("movies")
-                .whereEqualTo("name", movie.get("name"))
+                .whereEqualTo("nameLowerCase", lowerCaseMovieName)
                 .whereEqualTo("releaseDate", movie.get("releaseDate"))
                 .get()
                 .addOnCompleteListener(task -> {
@@ -284,10 +307,21 @@ public class MovieListFragment extends Fragment {
     private Map<String, Object> createMovie(String name, String releaseDate, String description, double rate, String photoUrl) {
         Map<String, Object> movie = new HashMap<>();
         movie.put("name", name);
+        movie.put("nameLowerCase", name.toLowerCase());
         movie.put("releaseDate", releaseDate);
         movie.put("description", description);
         movie.put("rate", rate);
         movie.put("photoUrl", photoUrl);
         return movie;
+    }
+
+    private Map<String, Object> createMovieMap(Movie movie) {
+        Map<String, Object> movieMap = new HashMap<>();
+        movieMap.put("name", movie.getName());
+        movieMap.put("releaseDate", movie.getReleaseDate());
+        movieMap.put("description", movie.getDescription());
+        movieMap.put("rate", movie.getRate());
+        movieMap.put("photoUrl", movie.getPhotoUrl());
+        return movieMap;
     }
 }
