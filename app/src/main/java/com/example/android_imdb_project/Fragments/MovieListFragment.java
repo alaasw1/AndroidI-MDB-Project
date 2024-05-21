@@ -35,8 +35,8 @@ public class MovieListFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Set isFavoritesFragment to false
-        adapter = new MovieAdapter(getContext(), movieList, false);
+        // Set isFavoritesFragment and isWatchlistFragment to false
+        adapter = new MovieAdapter(getContext(), movieList, false, false);
         recyclerView.setAdapter(adapter);
 
         // Initialize Firestore
@@ -64,5 +64,4 @@ public class MovieListFragment extends Fragment {
                     }
                 });
     }
-
 }

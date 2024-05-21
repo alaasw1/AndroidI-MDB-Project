@@ -32,13 +32,15 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
     private boolean isFavoritesFragment;
+    private boolean isWatchlistFragment;
 
-    public MovieAdapter(Context context, List<Movie> movies, boolean isFavoritesFragment) {
+    public MovieAdapter(Context context, List<Movie> movies, boolean isFavoritesFragment, boolean isWatchlistFragment) {
         this.context = context;
         this.movies = movies;
         this.db = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
         this.isFavoritesFragment = isFavoritesFragment;
+        this.isWatchlistFragment = isWatchlistFragment;
     }
 
     @NonNull
@@ -65,11 +67,17 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 .load(movie.getPhotoUrl())
                 .into(holder.moviePhoto);
 
-        if (isFavoritesFragment) {
+        if (isFavoritesFragment || isWatchlistFragment) {
             holder.buttonFavorite.setVisibility(View.GONE);
             holder.buttonWatchlist.setVisibility(View.GONE);
             holder.buttonDelete.setVisibility(View.VISIBLE);
-            holder.buttonDelete.setOnClickListener(v -> removeFromFavorites(movie));
+            holder.buttonDelete.setOnClickListener(v -> {
+                if (isFavoritesFragment) {
+                    removeFromCollection("favorites", movie);
+                } else {
+                    removeFromCollection("watchlist", movie);
+                }
+            });
         } else {
             holder.buttonFavorite.setVisibility(View.VISIBLE);
             holder.buttonWatchlist.setVisibility(View.VISIBLE);
@@ -118,11 +126,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
     }
 
-    private void removeFromFavorites(Movie movie) {
+    private void removeFromCollection(String collectionName, Movie movie) {
         if (currentUser != null) {
             db.collection("users")
                     .document(currentUser.getUid())
-                    .collection("favorites")
+                    .collection(collectionName)
                     .whereEqualTo("name", movie.getName())
                     .whereEqualTo("releaseDate", movie.getReleaseDate())
                     .get()
@@ -131,17 +139,17 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                             DocumentReference documentReference = task.getResult().getDocuments().get(0).getReference();
                             documentReference.delete()
                                     .addOnSuccessListener(aVoid -> {
-                                        Log.d(TAG, "Movie removed from favorites");
+                                        Log.d(TAG, "Movie removed from " + collectionName);
                                         movies.remove(movie);
                                         notifyDataSetChanged();
                                     })
-                                    .addOnFailureListener(e -> Log.w(TAG, "Error removing movie from favorites", e));
+                                    .addOnFailureListener(e -> Log.w(TAG, "Error removing movie from " + collectionName, e));
                         } else {
-                            Log.w(TAG, "Movie not found in favorites");
+                            Log.w(TAG, "Movie not found in " + collectionName);
                         }
                     });
         } else {
-            Log.w(TAG, "User not authenticated. Cannot remove movie from favorites");
+            Log.w(TAG, "User not authenticated. Cannot remove movie from " + collectionName);
         }
     }
 
