@@ -1,10 +1,13 @@
 package com.example.android_imdb_project.Fragments;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,13 +23,16 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MovieListFragment extends Fragment {
     private static final String TAG = "MovieListFragment";
     private RecyclerView recyclerView;
     private MovieAdapter adapter;
     private List<Movie> movieList = new ArrayList<>();
+    private List<Movie> filteredMovieList = new ArrayList<>();
     private FirebaseFirestore db;
+    private EditText editTextFilter;
 
     @Nullable
     @Override
@@ -35,9 +41,23 @@ public class MovieListFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Set isFavoritesFragment and isWatchlistFragment to false
-        adapter = new MovieAdapter(getContext(), movieList, false, false);
+        // Set isFavoritesFragment to false
+        adapter = new MovieAdapter(getContext(), filteredMovieList, false, false);
         recyclerView.setAdapter(adapter);
+
+        editTextFilter = view.findViewById(R.id.edit_text_filter);
+        editTextFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterMovies(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -53,15 +73,31 @@ public class MovieListFragment extends Fragment {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        movieList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Movie movie = document.toObject(Movie.class);
                             Log.d(TAG, "Movie URL: " + movie.getPhotoUrl());
                             movieList.add(movie);
                         }
+                        filteredMovieList.clear();
+                        filteredMovieList.addAll(movieList);
                         adapter.notifyDataSetChanged();
                     } else {
                         Log.w(TAG, "Error getting documents.", task.getException());
                     }
                 });
+    }
+
+    private void filterMovies(String query) {
+        filteredMovieList.clear();
+        if (query.isEmpty()) {
+            filteredMovieList.addAll(movieList);
+        } else {
+            String lowerCaseQuery = query.toLowerCase();
+            filteredMovieList.addAll(movieList.stream()
+                    .filter(movie -> movie.getName().toLowerCase().contains(lowerCaseQuery))
+                    .collect(Collectors.toList()));
+        }
+        adapter.notifyDataSetChanged();
     }
 }
