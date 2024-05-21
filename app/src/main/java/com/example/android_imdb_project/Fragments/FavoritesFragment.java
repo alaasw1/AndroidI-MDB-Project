@@ -62,7 +62,7 @@ public class FavoritesFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MovieAdapter(getContext(), movieList);
+        adapter = new MovieAdapter(getContext(), movieList, true); // Set isFavoritesFragment to true
         recyclerView.setAdapter(adapter);
 
         fetchFavoriteMovies();

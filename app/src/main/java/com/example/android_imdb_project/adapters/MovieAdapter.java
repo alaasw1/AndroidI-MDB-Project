@@ -22,7 +22,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
 
@@ -32,12 +31,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private Context context;
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
+    private boolean isFavoritesFragment;
 
-    public MovieAdapter(Context context, List<Movie> movies) {
+    public MovieAdapter(Context context, List<Movie> movies, boolean isFavoritesFragment) {
         this.context = context;
         this.movies = movies;
         this.db = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        this.isFavoritesFragment = isFavoritesFragment;
     }
 
     @NonNull
@@ -64,8 +65,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 .load(movie.getPhotoUrl())
                 .into(holder.moviePhoto);
 
-        holder.buttonFavorite.setOnClickListener(v -> addToCollection("favorites", movie));
-        holder.buttonWatchlist.setOnClickListener(v -> addToCollection("watchlist", movie));
+        if (isFavoritesFragment) {
+            holder.buttonFavorite.setVisibility(View.GONE);
+            holder.buttonWatchlist.setVisibility(View.GONE);
+            holder.buttonDelete.setVisibility(View.VISIBLE);
+            holder.buttonDelete.setOnClickListener(v -> removeFromFavorites(movie));
+        } else {
+            holder.buttonFavorite.setVisibility(View.VISIBLE);
+            holder.buttonWatchlist.setVisibility(View.VISIBLE);
+            holder.buttonDelete.setVisibility(View.GONE);
+            holder.buttonFavorite.setOnClickListener(v -> addToCollection("favorites", movie));
+            holder.buttonWatchlist.setOnClickListener(v -> addToCollection("watchlist", movie));
+        }
     }
 
     private void addToCollection(String collectionName, Movie movie) {
@@ -78,9 +89,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            QuerySnapshot querySnapshot = task.getResult();
-                            if (querySnapshot.isEmpty()) {
-                                // Movie does not exist in the collection, add it
+                            if (task.getResult().isEmpty()) {
                                 db.collection("users")
                                         .document(currentUser.getUid())
                                         .collection(collectionName)
@@ -109,6 +118,33 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
     }
 
+    private void removeFromFavorites(Movie movie) {
+        if (currentUser != null) {
+            db.collection("users")
+                    .document(currentUser.getUid())
+                    .collection("favorites")
+                    .whereEqualTo("name", movie.getName())
+                    .whereEqualTo("releaseDate", movie.getReleaseDate())
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentReference documentReference = task.getResult().getDocuments().get(0).getReference();
+                            documentReference.delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d(TAG, "Movie removed from favorites");
+                                        movies.remove(movie);
+                                        notifyDataSetChanged();
+                                    })
+                                    .addOnFailureListener(e -> Log.w(TAG, "Error removing movie from favorites", e));
+                        } else {
+                            Log.w(TAG, "Movie not found in favorites");
+                        }
+                    });
+        } else {
+            Log.w(TAG, "User not authenticated. Cannot remove movie from favorites");
+        }
+    }
+
     @Override
     public int getItemCount() {
         return movies.size();
@@ -117,7 +153,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public static class MovieViewHolder extends RecyclerView.ViewHolder {
         public TextView movieName, releaseDate, movieDescription, movieRate;
         public ImageView moviePhoto;
-        public Button buttonFavorite, buttonWatchlist;
+        public Button buttonFavorite, buttonWatchlist, buttonDelete;
 
         public MovieViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -128,6 +164,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             moviePhoto = itemView.findViewById(R.id.movie_photo);
             buttonFavorite = itemView.findViewById(R.id.button_favorite);
             buttonWatchlist = itemView.findViewById(R.id.button_watchlist);
+            buttonDelete = itemView.findViewById(R.id.button_delete);
         }
     }
 }
