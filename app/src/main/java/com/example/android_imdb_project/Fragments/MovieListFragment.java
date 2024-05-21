@@ -1,5 +1,7 @@
 package com.example.android_imdb_project.Fragments;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -7,7 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,12 +25,20 @@ import com.example.android_imdb_project.models.Movie;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MovieListFragment extends Fragment {
     private static final String TAG = "MovieListFragment";
+    private static final String TMDB_API_KEY = "9b78a0198d671648f859770a80094412";
     private RecyclerView recyclerView;
     private MovieAdapter adapter;
     private List<Movie> movieList = new ArrayList<>();
@@ -41,7 +53,7 @@ public class MovieListFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Set isFavoritesFragment to false
+        // Set isFavoritesFragment and isWatchlistFragment to false
         adapter = new MovieAdapter(getContext(), filteredMovieList, false, false);
         recyclerView.setAdapter(adapter);
 
@@ -58,6 +70,9 @@ public class MovieListFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {}
         });
+
+        Button addButton = view.findViewById(R.id.button_add_movie);
+        addButton.setOnClickListener(v -> showAddMovieDialog());
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -99,5 +114,78 @@ public class MovieListFragment extends Fragment {
                     .collect(Collectors.toList()));
         }
         adapter.notifyDataSetChanged();
+    }
+
+    private void showAddMovieDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Add Movie");
+
+        View viewInflated = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_movie, (ViewGroup) getView(), false);
+        final EditText input = viewInflated.findViewById(R.id.input_movie_name);
+
+        builder.setView(viewInflated);
+
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                String movieName = input.getText().toString();
+                addMovieByName(movieName);
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void addMovieByName(String movieName) {
+        new Thread(() -> {
+            try {
+                String apiUrl = "https://api.themoviedb.org/3/search/movie?api_key=" + TMDB_API_KEY + "&query=" + movieName;
+                URL url = new URL(apiUrl);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+
+                BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                JSONObject jsonResponse = new JSONObject(response.toString());
+                JSONArray results = jsonResponse.getJSONArray("results");
+                if (results.length() > 0) {
+                    JSONObject movieJson = results.getJSONObject(0);
+                    String name = movieJson.getString("title");
+                    String releaseDate = movieJson.getString("release_date");
+                    String description = movieJson.getString("overview");
+                    double rate = movieJson.getDouble("vote_average");
+                    String photoUrl = "https://image.tmdb.org/t/p/w500" + movieJson.getString("poster_path");
+
+                    Movie movie = new Movie(name, releaseDate, description, rate, photoUrl);
+                    db.collection("movies").add(movie).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            getActivity().runOnUiThread(() -> {
+                                movieList.add(movie);
+                                filterMovies(editTextFilter.getText().toString());
+                                Toast.makeText(getContext(), "Movie added successfully", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    });
+                } else {
+                    getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Movie not found", Toast.LENGTH_SHORT).show());
+                }
+            } catch (Exception e) {
+                getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Error adding movie", Toast.LENGTH_SHORT).show());
+                e.printStackTrace();
+            }
+        }).start();
     }
 }
