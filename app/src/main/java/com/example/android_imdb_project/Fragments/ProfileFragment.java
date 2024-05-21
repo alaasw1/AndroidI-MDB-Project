@@ -59,7 +59,13 @@ public class ProfileFragment extends Fragment {
             } else {
                 imv_propic.setImageResource(R.drawable.profile_circle_icon);
             }
-            et_display_name.setText(currentUser.getDisplayName());
+
+            String displayName = currentUser.getDisplayName();
+            if (displayName != null && !displayName.isEmpty()) {
+                et_display_name.setText(displayName);
+            } else {
+                et_display_name.setText("No display name");
+            }
             et_display_email.setText(currentUser.getEmail());
         }
 
