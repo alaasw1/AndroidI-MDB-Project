@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -232,11 +233,33 @@ public class ProfileFragment extends Fragment {
             Glide.with(this).load(movieUrls.get(1)).into(iv2);
         } else {
             iv2.setImageResource(defaultImage);
+            iv2.setVisibility(size == 0 ? View.GONE : View.VISIBLE);
         }
         if (size > 2) {
             Glide.with(this).load(movieUrls.get(2)).into(iv3);
         } else {
             iv3.setImageResource(defaultImage);
+            iv3.setVisibility(size <= 1 ? View.GONE : View.VISIBLE);
+        }
+
+        // Adjust the layout weights based on the number of images
+        iv1.getLayoutParams().width = 0;
+        iv2.getLayoutParams().width = 0;
+        iv3.getLayoutParams().width = 0;
+        if (size == 1) {
+            iv1.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+        } else if (size == 2) {
+            iv1.getLayoutParams().width = 0;
+            iv2.getLayoutParams().width = 0;
+            ((LinearLayout.LayoutParams) iv1.getLayoutParams()).weight = 1;
+            ((LinearLayout.LayoutParams) iv2.getLayoutParams()).weight = 1;
+        } else {
+            iv1.getLayoutParams().width = 0;
+            iv2.getLayoutParams().width = 0;
+            iv3.getLayoutParams().width = 0;
+            ((LinearLayout.LayoutParams) iv1.getLayoutParams()).weight = 1;
+            ((LinearLayout.LayoutParams) iv2.getLayoutParams()).weight = 1;
+            ((LinearLayout.LayoutParams) iv3.getLayoutParams()).weight = 1;
         }
     }
 
