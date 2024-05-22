@@ -4,15 +4,19 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
+
 import com.bumptech.glide.Glide;
 import com.example.android_imdb_project.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -22,17 +26,30 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProfileFragment extends Fragment {
 
     private static final int PICK_IMAGE = 1;
+    private static final String TAG = "ProfileFragment";
     private FirebaseAuth mAuth;
     private FirebaseStorage mStorage;
+    private FirebaseFirestore db;
     private ImageView imv_propic;
     private TextView et_display_name, et_display_email;
+    private CardView cardWatchlist, cardFavorites;
+    private TextView tvWatchlistCount, tvFavoritesCount;
+    private ImageView ivWatchlist1, ivWatchlist2, ivWatchlist3;
+    private ImageView ivFavorites1, ivFavorites2, ivFavorites3;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -44,12 +61,25 @@ public class ProfileFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        // Initialize Firebase Auth and views
+        // Initialize Firebase Auth, Firestore, and Storage
         mAuth = FirebaseAuth.getInstance();
         mStorage = FirebaseStorage.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        // Initialize views
         imv_propic = view.findViewById(R.id.imv_propic);
         et_display_name = view.findViewById(R.id.et_display_name);
         et_display_email = view.findViewById(R.id.et_display_email);
+        cardWatchlist = view.findViewById(R.id.card_watchlist);
+        cardFavorites = view.findViewById(R.id.card_favorites);
+        tvWatchlistCount = view.findViewById(R.id.tv_watchlist_count);
+        tvFavoritesCount = view.findViewById(R.id.tv_favorites_count);
+        ivWatchlist1 = view.findViewById(R.id.iv_watchlist_1);
+        ivWatchlist2 = view.findViewById(R.id.iv_watchlist_2);
+        ivWatchlist3 = view.findViewById(R.id.iv_watchlist_3);
+        ivFavorites1 = view.findViewById(R.id.iv_favorites_1);
+        ivFavorites2 = view.findViewById(R.id.iv_favorites_2);
+        ivFavorites3 = view.findViewById(R.id.iv_favorites_3);
 
         // Load current user info
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -71,6 +101,14 @@ public class ProfileFragment extends Fragment {
 
         // Set click listener to change profile picture
         imv_propic.setOnClickListener(v -> openImagePicker());
+
+        // Set click listeners for cards
+        cardWatchlist.setOnClickListener(v -> navigateToWatchlist());
+        cardFavorites.setOnClickListener(v -> navigateToFavorites());
+
+        // Fetch watchlist and favorites data
+        fetchWatchlistData();
+        fetchFavoritesData();
 
         return view;
     }
@@ -123,5 +161,90 @@ public class ProfileFragment extends Fragment {
                         }
                     });
         }
+    }
+
+    private void fetchWatchlistData() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            return;
+        }
+
+        db.collection("users").document(currentUser.getUid())
+                .collection("watchlist")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<String> movieUrls = new ArrayList<>();
+                        int count = 0;
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            count++;
+                            String photoUrl = document.getString("photoUrl");
+                            if (photoUrl != null && !photoUrl.isEmpty()) {
+                                movieUrls.add(photoUrl);
+                            }
+                        }
+                        Log.d(TAG, "fetchWatchlistData: Movies count = " + count);
+                        tvWatchlistCount.setText("Movies: " + count);
+                        displayMovieImages(movieUrls, ivWatchlist1, ivWatchlist2, ivWatchlist3, R.drawable.watchlist_default);
+                    } else {
+                        Log.w(TAG, "Error getting watchlist documents.", task.getException());
+                    }
+                });
+    }
+
+    private void fetchFavoritesData() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            return;
+        }
+
+        db.collection("users").document(currentUser.getUid())
+                .collection("favorites")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<String> movieUrls = new ArrayList<>();
+                        int count = 0;
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            count++;
+                            String photoUrl = document.getString("photoUrl");
+                            if (photoUrl != null && !photoUrl.isEmpty()) {
+                                movieUrls.add(photoUrl);
+                            }
+                        }
+                        Log.d(TAG, "fetchFavoritesData: Movies count = " + count);
+                        tvFavoritesCount.setText("Movies: " + count);
+                        displayMovieImages(movieUrls, ivFavorites1, ivFavorites2, ivFavorites3, R.drawable.favorites_default);
+                    } else {
+                        Log.w(TAG, "Error getting favorites documents.", task.getException());
+                    }
+                });
+    }
+
+    private void displayMovieImages(List<String> movieUrls, ImageView iv1, ImageView iv2, ImageView iv3, int defaultImage) {
+        int size = movieUrls.size();
+        if (size > 0) {
+            Glide.with(this).load(movieUrls.get(0)).into(iv1);
+        } else {
+            iv1.setImageResource(defaultImage);
+        }
+        if (size > 1) {
+            Glide.with(this).load(movieUrls.get(1)).into(iv2);
+        } else {
+            iv2.setImageResource(defaultImage);
+        }
+        if (size > 2) {
+            Glide.with(this).load(movieUrls.get(2)).into(iv3);
+        } else {
+            iv3.setImageResource(defaultImage);
+        }
+    }
+
+    private void navigateToWatchlist() {
+        // Navigation logic to WatchlistFragment
+    }
+
+    private void navigateToFavorites() {
+        // Navigation logic to FavoritesFragment
     }
 }
