@@ -16,24 +16,18 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.android_imdb_project.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -224,43 +218,45 @@ public class ProfileFragment extends Fragment {
 
     private void displayMovieImages(List<String> movieUrls, ImageView iv1, ImageView iv2, ImageView iv3, int defaultImage) {
         int size = movieUrls.size();
-        if (size > 0) {
+        iv1.setVisibility(View.INVISIBLE);
+        iv2.setVisibility(View.INVISIBLE);
+        iv3.setVisibility(View.INVISIBLE);
+
+        if (size == 1) {
+            iv1.setVisibility(View.VISIBLE);
+            iv1.setLayoutParams(createLayoutParams(100));
             Glide.with(this).load(movieUrls.get(0)).into(iv1);
-        } else {
-            iv1.setImageResource(defaultImage);
-        }
-        if (size > 1) {
+        } else if (size == 2) {
+            iv1.setVisibility(View.VISIBLE);
+            iv2.setVisibility(View.VISIBLE);
+            iv1.setLayoutParams(createLayoutParams(50));
+            iv2.setLayoutParams(createLayoutParams(50));
+            Glide.with(this).load(movieUrls.get(0)).into(iv1);
             Glide.with(this).load(movieUrls.get(1)).into(iv2);
-        } else {
-            iv2.setImageResource(defaultImage);
-            iv2.setVisibility(size == 0 ? View.GONE : View.VISIBLE);
-        }
-        if (size > 2) {
+        } else if (size >= 3) {
+            iv1.setVisibility(View.VISIBLE);
+            iv2.setVisibility(View.VISIBLE);
+            iv3.setVisibility(View.VISIBLE);
+            iv1.setLayoutParams(createLayoutParams(33));
+            iv2.setLayoutParams(createLayoutParams(33));
+            iv3.setLayoutParams(createLayoutParams(33));
+            Glide.with(this).load(movieUrls.get(0)).into(iv1);
+            Glide.with(this).load(movieUrls.get(1)).into(iv2);
             Glide.with(this).load(movieUrls.get(2)).into(iv3);
         } else {
-            iv3.setImageResource(defaultImage);
-            iv3.setVisibility(size <= 1 ? View.GONE : View.VISIBLE);
+            iv1.setVisibility(View.VISIBLE);
+            iv1.setLayoutParams(createLayoutParams(100));
+            iv1.setImageResource(defaultImage);
         }
+    }
 
-        // Adjust the layout weights based on the number of images
-        iv1.getLayoutParams().width = 0;
-        iv2.getLayoutParams().width = 0;
-        iv3.getLayoutParams().width = 0;
-        if (size == 1) {
-            iv1.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
-        } else if (size == 2) {
-            iv1.getLayoutParams().width = 0;
-            iv2.getLayoutParams().width = 0;
-            ((LinearLayout.LayoutParams) iv1.getLayoutParams()).weight = 1;
-            ((LinearLayout.LayoutParams) iv2.getLayoutParams()).weight = 1;
-        } else {
-            iv1.getLayoutParams().width = 0;
-            iv2.getLayoutParams().width = 0;
-            iv3.getLayoutParams().width = 0;
-            ((LinearLayout.LayoutParams) iv1.getLayoutParams()).weight = 1;
-            ((LinearLayout.LayoutParams) iv2.getLayoutParams()).weight = 1;
-            ((LinearLayout.LayoutParams) iv3.getLayoutParams()).weight = 1;
-        }
+    private LinearLayout.LayoutParams createLayoutParams(int weight) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                weight
+        );
+        return params;
     }
 
     private void navigateToWatchlist() {
