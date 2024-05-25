@@ -16,7 +16,6 @@ public class Review {
     private List<String> dislikedBy;
 
     public Review() {
-        // Default constructor required for calls to DataSnapshot.getValue(Review.class)
     }
 
     public Review(String reviewId, String userId, String userName, String userProfilePicture, String content, long timestamp, String movieId) {

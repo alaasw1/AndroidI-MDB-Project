@@ -29,14 +29,14 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     private List<Review> reviews;
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
-    private String movieId; // Add movieId field
+    private String movieId;
 
-    public ReviewAdapter(Context context, List<Review> reviews, String movieId) { // Add movieId parameter
+    public ReviewAdapter(Context context, List<Review> reviews, String movieId) {
         this.context = context;
         this.reviews = reviews;
         this.db = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        this.movieId = movieId; // Set movieId
+        this.movieId = movieId;
 
         Log.d(TAG, "ReviewAdapter initialized with movieId: " + movieId);
     }
@@ -56,9 +56,11 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         holder.tvLikes.setText(String.valueOf(review.getLikes()));
         holder.tvDislikes.setText(String.valueOf(review.getDislikes()));
 
-        Glide.with(context).load(review.getUserProfilePicture()).into(holder.ivUserProfilePicture);
+        Glide.with(context)
+                .load(review.getUserProfilePicture())
+                .placeholder(R.drawable.ic_profile)  // Your placeholder image
+                .into(holder.ivUserProfilePicture);
 
-        // Update button styles based on user action
         updateButtonStyles(holder, review);
 
         holder.ibLike.setOnClickListener(v -> {

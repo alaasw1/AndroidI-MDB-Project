@@ -74,7 +74,6 @@
             android:visibility="gone"/>
     </LinearLayout>
 
-    <!-- New button for opening review screen -->
     <Button
         android:id="@+id/button_review"
         android:layout_width="match_parent"

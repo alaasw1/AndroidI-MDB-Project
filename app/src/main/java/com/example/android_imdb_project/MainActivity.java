@@ -12,17 +12,14 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.android_imdb_project.SignIn.ProfileActivity;
 import com.example.android_imdb_project.SignIn.RegisterActivity;
 import com.example.android_imdb_project.SignIn.SignInActivity;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     Button btn_sign_in;
     Button btn_register;
-//    Button btn_profile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,17 +59,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        btn_profile.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                if(mAuth.getCurrentUser() == null){
-//                    Toast.makeText(getApplicationContext(),"No User Found!",Toast.LENGTH_LONG).show();
-//                }else{
-//                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-//                    startActivity(intent);
-//                }
-//            }
-//        });
     }
 
 }

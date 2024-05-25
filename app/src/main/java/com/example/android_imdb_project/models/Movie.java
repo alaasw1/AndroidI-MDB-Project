@@ -13,7 +13,6 @@ public class Movie {
     private Map<String, Boolean> likes;
 
     public Movie() {
-        // Default constructor required for calls to DataSnapshot.getValue(Movie.class)
         this.likes = new HashMap<>();
     }
 
@@ -27,7 +26,6 @@ public class Movie {
         this.likes = new HashMap<>();
     }
 
-    // Getters and setters
     public String getId() {
         return id;
     }

@@ -103,7 +103,7 @@ public class ReviewActivity extends AppCompatActivity {
     private void addReview(String content) {
         String userId = currentUser.getUid();
         String userName = currentUser.getDisplayName();
-        String userProfilePicture = currentUser.getPhotoUrl().toString();
+        String userProfilePicture = (currentUser.getPhotoUrl() != null) ? currentUser.getPhotoUrl().toString() : "https://via.placeholder.com/150"; // Use a default image URL if null
         long timestamp = System.currentTimeMillis();
 
         Review review = new Review(null, userId, userName, userProfilePicture, content, timestamp, movieId); // Pass movieId

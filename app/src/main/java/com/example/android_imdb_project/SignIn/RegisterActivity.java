@@ -94,11 +94,15 @@ public class RegisterActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(userEmail, userPasswd).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                if (firebaseUser != null && imageUri != null) {
-                    uploadImageToFirebaseStorage(firebaseUser, imageUri, userName);
+                if (firebaseUser != null) {
+                    if (imageUri != null) {
+                        uploadImageToFirebaseStorage(firebaseUser, imageUri, userName);
+                    } else {
+                        Uri defaultImageUri = Uri.parse("https://firebasestorage.googleapis.com/v0/b/android-imdb-project.appspot.com/o/profile_images%2Fprofile_circle_icon.png?alt=media&token=f458abd3-d604-427f-bb3a-0e40c6b384ed");
+                        updateUserProfile(firebaseUser, defaultImageUri, userName);
+                    }
                 } else {
-                    Log.e("RegisterActivity", "Registration succeeded, but user or imageUri is null");
-                    // Handle case where there's no image selected or user creation failed
+                    Log.e("RegisterActivity", "Registration succeeded, but user is null");
                 }
             } else {
                 Toast.makeText(RegisterActivity.this, "Registration failed: " + (task.getException() != null ? task.getException().getMessage() : "Unknown Error"), Toast.LENGTH_SHORT).show();
@@ -133,11 +137,7 @@ public class RegisterActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 Log.d("RegisterActivity", "User profile updated.");
                 Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
-                //navigate to SignInActivity
-                Intent intent = new Intent(RegisterActivity.this, SignInActivity.class);
-                startActivity(intent);
-                //close the current activity
-                finish();
+                navigateToSignIn();
             } else {
                 Log.e("RegisterActivity", "Error updating user profile", task.getException());
                 Toast.makeText(RegisterActivity.this, "User registration successful but failed to update profile photo", Toast.LENGTH_LONG).show();
@@ -145,4 +145,9 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    private void navigateToSignIn() {
+        Intent intent = new Intent(RegisterActivity.this, SignInActivity.class);
+        startActivity(intent);
+        finish();
+    }
 }

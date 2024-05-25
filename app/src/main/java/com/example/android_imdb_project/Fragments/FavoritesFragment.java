@@ -6,8 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,7 +30,6 @@ public class FavoritesFragment extends Fragment {
     private FirebaseUser currentUser;
 
     public FavoritesFragment() {
-        // Required empty public constructor
     }
 
     public static FavoritesFragment newInstance(String param1, String param2) {
@@ -57,12 +54,10 @@ public class FavoritesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_favorites, container, false);
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Set isFavoritesFragment to true, isWatchlistFragment to false, and showReviewButton to true
         adapter = new MovieAdapter(getContext(), movieList, true, false, false);
         recyclerView.setAdapter(adapter);
 
