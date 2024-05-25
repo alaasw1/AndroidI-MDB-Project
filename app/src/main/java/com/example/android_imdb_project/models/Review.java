@@ -1,5 +1,8 @@
 package com.example.android_imdb_project.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Review {
     private String reviewId;
     private String userId;
@@ -9,22 +12,26 @@ public class Review {
     private long timestamp;
     private int likes;
     private int dislikes;
-    private String movieId; // Add movieId
+    private String movieId;
+    private List<String> likedBy;
+    private List<String> dislikedBy;
 
     public Review() {
         // Default constructor required for calls to DataSnapshot.getValue(Review.class)
     }
 
-    public Review(String reviewId, String userId, String userName, String userProfilePicture, String content, long timestamp, String movieId) { // Add movieId parameter
+    public Review(String reviewId, String userId, String userName, String userProfilePicture, String content, long timestamp, String movieId) {
         this.reviewId = reviewId;
         this.userId = userId;
         this.userName = userName;
         this.userProfilePicture = userProfilePicture;
         this.content = content;
         this.timestamp = timestamp;
+        this.movieId = movieId;
         this.likes = 0;
         this.dislikes = 0;
-        this.movieId = movieId; // Set movieId
+        this.likedBy = new ArrayList<>();
+        this.dislikedBy = new ArrayList<>();
     }
 
     // Getters and setters
@@ -98,5 +105,21 @@ public class Review {
 
     public void setMovieId(String movieId) {
         this.movieId = movieId;
+    }
+
+    public List<String> getLikedBy() {
+        return likedBy;
+    }
+
+    public void setLikedBy(List<String> likedBy) {
+        this.likedBy = likedBy;
+    }
+
+    public List<String> getDislikedBy() {
+        return dislikedBy;
+    }
+
+    public void setDislikedBy(List<String> dislikedBy) {
+        this.dislikedBy = dislikedBy;
     }
 }

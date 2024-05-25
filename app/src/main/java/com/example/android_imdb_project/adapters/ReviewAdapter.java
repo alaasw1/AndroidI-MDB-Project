@@ -63,14 +63,20 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
                 Log.e(TAG, "movieId or reviewId is null");
                 return;
             }
-            review.setLikes(review.getLikes() + 1);
-            db.collection("movies")
-                    .document(movieId)
-                    .collection("reviews")
-                    .document(review.getReviewId())
-                    .update("likes", review.getLikes())
-                    .addOnSuccessListener(aVoid -> holder.tvLikes.setText(String.valueOf(review.getLikes())))
-                    .addOnFailureListener(e -> review.setLikes(review.getLikes() - 1));
+            if (!review.getLikedBy().contains(currentUser.getUid())) {
+                review.setLikes(review.getLikes() + 1);
+                review.getLikedBy().add(currentUser.getUid());
+                db.collection("movies")
+                        .document(movieId)
+                        .collection("reviews")
+                        .document(review.getReviewId())
+                        .update("likes", review.getLikes(), "likedBy", review.getLikedBy())
+                        .addOnSuccessListener(aVoid -> holder.tvLikes.setText(String.valueOf(review.getLikes())))
+                        .addOnFailureListener(e -> {
+                            review.setLikes(review.getLikes() - 1);
+                            review.getLikedBy().remove(currentUser.getUid());
+                        });
+            }
         });
 
         holder.ibDislike.setOnClickListener(v -> {
@@ -79,14 +85,20 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
                 Log.e(TAG, "movieId or reviewId is null");
                 return;
             }
-            review.setDislikes(review.getDislikes() + 1);
-            db.collection("movies")
-                    .document(movieId)
-                    .collection("reviews")
-                    .document(review.getReviewId())
-                    .update("dislikes", review.getDislikes())
-                    .addOnSuccessListener(aVoid -> holder.tvDislikes.setText(String.valueOf(review.getDislikes())))
-                    .addOnFailureListener(e -> review.setDislikes(review.getDislikes() - 1));
+            if (!review.getDislikedBy().contains(currentUser.getUid())) {
+                review.setDislikes(review.getDislikes() + 1);
+                review.getDislikedBy().add(currentUser.getUid());
+                db.collection("movies")
+                        .document(movieId)
+                        .collection("reviews")
+                        .document(review.getReviewId())
+                        .update("dislikes", review.getDislikes(), "dislikedBy", review.getDislikedBy())
+                        .addOnSuccessListener(aVoid -> holder.tvDislikes.setText(String.valueOf(review.getDislikes())))
+                        .addOnFailureListener(e -> {
+                            review.setDislikes(review.getDislikes() - 1);
+                            review.getDislikedBy().remove(currentUser.getUid());
+                        });
+            }
         });
 
         if (review.getUserId().equals(currentUser.getUid())) {
