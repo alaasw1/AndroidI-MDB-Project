@@ -2,6 +2,7 @@ package com.example.android_imdb_project;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -23,6 +24,7 @@ import java.util.List;
 
 public class ReviewActivity extends AppCompatActivity {
 
+    private static final String TAG = "ReviewActivity";
     private RecyclerView recyclerView;
     private ReviewAdapter adapter;
     private List<Review> reviewList;
@@ -36,11 +38,12 @@ public class ReviewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_review);
 
         movieId = getIntent().getStringExtra("movieId");
+        Log.d(TAG, "ReviewActivity started with movieId: " + movieId);
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         reviewList = new ArrayList<>();
-        adapter = new ReviewAdapter(this, reviewList);
+        adapter = new ReviewAdapter(this, reviewList, movieId); // Pass movieId to adapter
         recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
@@ -75,7 +78,10 @@ public class ReviewActivity extends AppCompatActivity {
                         reviewList.clear();
                         for (DocumentSnapshot document : task.getResult()) {
                             Review review = document.toObject(Review.class);
-                            reviewList.add(review);
+                            if (review != null) {
+                                review.setReviewId(document.getId()); // Set the reviewId
+                                reviewList.add(review);
+                            }
                         }
                         adapter.notifyDataSetChanged();
                     } else {
@@ -83,6 +89,7 @@ public class ReviewActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     private void addReview(String content) {
         String userId = currentUser.getUid();
@@ -120,4 +127,5 @@ public class ReviewActivity extends AppCompatActivity {
 
         adapter.notifyDataSetChanged();
     }
+
 }

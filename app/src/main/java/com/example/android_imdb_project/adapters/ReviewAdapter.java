@@ -1,6 +1,7 @@
 package com.example.android_imdb_project.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,16 +23,21 @@ import java.util.List;
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder> {
 
+    private static final String TAG = "ReviewAdapter";
     private Context context;
     private List<Review> reviews;
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
+    private String movieId; // Add movieId field
 
-    public ReviewAdapter(Context context, List<Review> reviews) {
+    public ReviewAdapter(Context context, List<Review> reviews, String movieId) { // Add movieId parameter
         this.context = context;
         this.reviews = reviews;
         this.db = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        this.movieId = movieId; // Set movieId
+
+        Log.d(TAG, "ReviewAdapter initialized with movieId: " + movieId);
     }
 
     @NonNull
@@ -52,9 +58,14 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         Glide.with(context).load(review.getUserProfilePicture()).into(holder.ivUserProfilePicture);
 
         holder.ibLike.setOnClickListener(v -> {
+            Log.d(TAG, "Like button clicked for reviewId: " + review.getReviewId());
+            if (movieId == null || review.getReviewId() == null) {
+                Log.e(TAG, "movieId or reviewId is null");
+                return;
+            }
             review.setLikes(review.getLikes() + 1);
             db.collection("movies")
-                    .document(review.getMovieId())
+                    .document(movieId)
                     .collection("reviews")
                     .document(review.getReviewId())
                     .update("likes", review.getLikes())
@@ -63,9 +74,14 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         });
 
         holder.ibDislike.setOnClickListener(v -> {
+            Log.d(TAG, "Dislike button clicked for reviewId: " + review.getReviewId());
+            if (movieId == null || review.getReviewId() == null) {
+                Log.e(TAG, "movieId or reviewId is null");
+                return;
+            }
             review.setDislikes(review.getDislikes() + 1);
             db.collection("movies")
-                    .document(review.getMovieId())
+                    .document(movieId)
                     .collection("reviews")
                     .document(review.getReviewId())
                     .update("dislikes", review.getDislikes())
@@ -76,8 +92,13 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         if (review.getUserId().equals(currentUser.getUid())) {
             holder.ibDelete.setVisibility(View.VISIBLE);
             holder.ibDelete.setOnClickListener(v -> {
+                Log.d(TAG, "Delete button clicked for reviewId: " + review.getReviewId());
+                if (movieId == null || review.getReviewId() == null) {
+                    Log.e(TAG, "movieId or reviewId is null");
+                    return;
+                }
                 db.collection("movies")
-                        .document(review.getMovieId())
+                        .document(movieId)
                         .collection("reviews")
                         .document(review.getReviewId())
                         .delete()

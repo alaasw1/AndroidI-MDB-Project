@@ -9,7 +9,7 @@ public class Review {
     private long timestamp;
     private int likes;
     private int dislikes;
-    private String movieId; // Add this line
+    private String movieId; // Add movieId
 
     public Review() {
         // Default constructor required for calls to DataSnapshot.getValue(Review.class)
@@ -92,11 +92,11 @@ public class Review {
         this.dislikes = dislikes;
     }
 
-    public String getMovieId() { // Add getter for movieId
+    public String getMovieId() {
         return movieId;
     }
 
-    public void setMovieId(String movieId) { // Add setter for movieId
+    public void setMovieId(String movieId) {
         this.movieId = movieId;
     }
 }
