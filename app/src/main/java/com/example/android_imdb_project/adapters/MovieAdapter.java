@@ -1,6 +1,7 @@
 package com.example.android_imdb_project.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.android_imdb_project.R;
+import com.example.android_imdb_project.ReviewActivity;
 import com.example.android_imdb_project.models.Movie;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -85,6 +87,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             holder.buttonFavorite.setOnClickListener(v -> addToCollection("favorites", movie));
             holder.buttonWatchlist.setOnClickListener(v -> addToCollection("watchlist", movie));
         }
+
+        holder.buttonReview.setOnClickListener(v -> {
+            Intent intent = new Intent(context, ReviewActivity.class);
+            intent.putExtra("movieId", movie.getId());
+            context.startActivity(intent);
+        });
     }
 
     private void addToCollection(String collectionName, Movie movie) {
@@ -161,7 +169,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public static class MovieViewHolder extends RecyclerView.ViewHolder {
         public TextView movieName, releaseDate, movieDescription, movieRate;
         public ImageView moviePhoto;
-        public Button buttonFavorite, buttonWatchlist, buttonDelete;
+        public Button buttonFavorite, buttonWatchlist, buttonDelete, buttonReview;
 
         public MovieViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -173,6 +181,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             buttonFavorite = itemView.findViewById(R.id.button_favorite);
             buttonWatchlist = itemView.findViewById(R.id.button_watchlist);
             buttonDelete = itemView.findViewById(R.id.button_delete);
+            buttonReview = itemView.findViewById(R.id.button_review);
         }
     }
 }

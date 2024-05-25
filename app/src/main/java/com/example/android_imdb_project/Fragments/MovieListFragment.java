@@ -105,6 +105,7 @@ public class MovieListFragment extends Fragment {
                             movieList.clear();
                             for (QueryDocumentSnapshot document : result) {
                                 Movie movie = document.toObject(Movie.class);
+                                movie.setId(document.getId()); // Set the movie ID
                                 Log.d(TAG, "Movie URL: " + movie.getPhotoUrl());
                                 movieList.add(movie);
                             }
@@ -187,7 +188,7 @@ public class MovieListFragment extends Fragment {
                     double rate = movieJson.getDouble("vote_average");
                     String photoUrl = "https://image.tmdb.org/t/p/w500" + movieJson.getString("poster_path");
 
-                    Movie movie = new Movie(name, releaseDate, description, rate, photoUrl);
+                    Movie movie = new Movie("", name, releaseDate, description, rate, photoUrl);
                     checkIfMovieExistsAndAdd(movie);
                 } else {
                     getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Movie not found", Toast.LENGTH_SHORT).show());
@@ -212,6 +213,8 @@ public class MovieListFragment extends Fragment {
                             movieMap.put("nameLowerCase", lowerCaseMovieName);
                             db.collection("movies").add(movieMap).addOnCompleteListener(task1 -> {
                                 if (task1.isSuccessful()) {
+                                    DocumentReference documentReference = task1.getResult();
+                                    movie.setId(documentReference.getId()); // Set the movie ID
                                     getActivity().runOnUiThread(() -> {
                                         movieList.add(movie);
                                         filterMovies(editTextFilter.getText().toString());
