@@ -91,6 +91,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         holder.buttonReview.setOnClickListener(v -> {
             Intent intent = new Intent(context, ReviewActivity.class);
             intent.putExtra("movieId", movie.getId());
+            intent.putExtra("movieName", movie.getName()); // Add movieName to the intent
             context.startActivity(intent);
         });
     }
