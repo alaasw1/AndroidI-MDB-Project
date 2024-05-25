@@ -45,7 +45,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_like"
-            android:contentDescription="Like" />
+            android:contentDescription="Like"
+            android:scaleType="fitCenter" />
 
         <TextView
             android:id="@+id/tv_likes"
@@ -59,8 +60,9 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_dislike"
-            android:contentDescription="dislike"
-            android:paddingLeft="16dp" />
+            android:contentDescription="Dislike"
+            android:paddingLeft="16dp"
+            android:scaleType="fitCenter" />
 
         <TextView
             android:id="@+id/tv_dislikes"
@@ -74,17 +76,19 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_edit"
-            android:contentDescription="edit"
+            android:contentDescription="Edit"
             android:paddingLeft="16dp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib_delete"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_delete"
-            android:contentDescription="delete"
+            android:contentDescription="Delete"
             android:paddingLeft="16dp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:scaleType="fitCenter" />
     </LinearLayout>
 </LinearLayout>

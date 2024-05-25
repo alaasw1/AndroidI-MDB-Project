@@ -36,6 +36,7 @@
             android:layout_weight="0.10"
             android:src="@drawable/ic_submit"
             android:contentDescription="Submit"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="fitCenter" />
     </LinearLayout>
 </LinearLayout>
