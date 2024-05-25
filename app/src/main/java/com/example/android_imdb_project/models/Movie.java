@@ -10,10 +10,11 @@ public class Movie {
     private String description;
     private double rate;
     private String photoUrl;
-    private Map<String, Object> likesDislikes;
+    private Map<String, Boolean> likes;
 
     public Movie() {
         // Default constructor required for calls to DataSnapshot.getValue(Movie.class)
+        this.likes = new HashMap<>();
     }
 
     public Movie(String id, String name, String releaseDate, String description, double rate, String photoUrl) {
@@ -23,9 +24,10 @@ public class Movie {
         this.description = description;
         this.rate = rate;
         this.photoUrl = photoUrl;
-        this.likesDislikes = new HashMap<>();
+        this.likes = new HashMap<>();
     }
 
+    // Getters and setters
     public String getId() {
         return id;
     }
@@ -74,43 +76,18 @@ public class Movie {
         this.photoUrl = photoUrl;
     }
 
-    public Map<String, Object> getLikesDislikes() {
-        return likesDislikes;
+    public Map<String, Boolean> getLikes() {
+        return likes;
     }
 
-    public void setLikesDislikes(Map<String, Object> likesDislikes) {
-        this.likesDislikes = likesDislikes;
-    }
-
-    public void addLike(String userId) {
-        likesDislikes.put(userId, "like");
-    }
-
-    public void addDislike(String userId) {
-        likesDislikes.put(userId, "dislike");
-    }
-
-    public void removeReaction(String userId) {
-        likesDislikes.remove(userId);
+    public void setLikes(Map<String, Boolean> likes) {
+        this.likes = likes;
     }
 
     public int getLikeCount() {
-        int count = 0;
-        for (Object reaction : likesDislikes.values()) {
-            if (reaction.equals("like")) {
-                count++;
-            }
+        if (likes == null) {
+            return 0;
         }
-        return count;
-    }
-
-    public int getDislikeCount() {
-        int count = 0;
-        for (Object reaction : likesDislikes.values()) {
-            if (reaction.equals("dislike")) {
-                count++;
-            }
-        }
-        return count;
+        return likes.size();
     }
 }

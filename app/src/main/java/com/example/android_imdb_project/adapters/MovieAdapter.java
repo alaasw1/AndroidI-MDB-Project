@@ -35,7 +35,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private FirebaseUser currentUser;
     private boolean isFavoritesFragment;
     private boolean isWatchlistFragment;
-    private boolean showReviewButton; // Add this flag
+    private boolean showReviewButton;
 
     public MovieAdapter(Context context, List<Movie> movies, boolean isFavoritesFragment, boolean isWatchlistFragment, boolean showReviewButton) {
         this.context = context;
@@ -44,7 +44,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
         this.isFavoritesFragment = isFavoritesFragment;
         this.isWatchlistFragment = isWatchlistFragment;
-        this.showReviewButton = showReviewButton; // Initialize the flag
+        this.showReviewButton = showReviewButton;
     }
 
     @NonNull
@@ -75,6 +75,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             holder.buttonFavorite.setVisibility(View.GONE);
             holder.buttonWatchlist.setVisibility(View.GONE);
             holder.buttonDelete.setVisibility(View.VISIBLE);
+            holder.buttonReview.setVisibility(showReviewButton ? View.VISIBLE : View.GONE);
             holder.buttonDelete.setOnClickListener(v -> {
                 if (isFavoritesFragment) {
                     removeFromCollection("favorites", movie);
@@ -86,21 +87,17 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             holder.buttonFavorite.setVisibility(View.VISIBLE);
             holder.buttonWatchlist.setVisibility(View.VISIBLE);
             holder.buttonDelete.setVisibility(View.GONE);
+            holder.buttonReview.setVisibility(View.VISIBLE);
             holder.buttonFavorite.setOnClickListener(v -> addToCollection("favorites", movie));
             holder.buttonWatchlist.setOnClickListener(v -> addToCollection("watchlist", movie));
         }
 
-        if (showReviewButton) {
-            holder.buttonReview.setVisibility(View.VISIBLE);
-            holder.buttonReview.setOnClickListener(v -> {
-                Intent intent = new Intent(context, ReviewActivity.class);
-                intent.putExtra("movieId", movie.getId());
-                intent.putExtra("movieName", movie.getName()); // Add movieName to the intent
-                context.startActivity(intent);
-            });
-        } else {
-            holder.buttonReview.setVisibility(View.GONE);
-        }
+        holder.buttonReview.setOnClickListener(v -> {
+            Intent intent = new Intent(context, ReviewActivity.class);
+            intent.putExtra("movieId", movie.getId());
+            intent.putExtra("movieName", movie.getName());
+            context.startActivity(intent);
+        });
     }
 
     private void addToCollection(String collectionName, Movie movie) {
