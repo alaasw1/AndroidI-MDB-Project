@@ -12,7 +12,6 @@ public class Review {
     private long timestamp;
     private int likes;
     private int dislikes;
-    private String movieId;
     private List<String> likedBy;
     private List<String> dislikedBy;
 
@@ -27,7 +26,6 @@ public class Review {
         this.userProfilePicture = userProfilePicture;
         this.content = content;
         this.timestamp = timestamp;
-        this.movieId = movieId;
         this.likes = 0;
         this.dislikes = 0;
         this.likedBy = new ArrayList<>();
@@ -97,14 +95,6 @@ public class Review {
 
     public void setDislikes(int dislikes) {
         this.dislikes = dislikes;
-    }
-
-    public String getMovieId() {
-        return movieId;
-    }
-
-    public void setMovieId(String movieId) {
-        this.movieId = movieId;
     }
 
     public List<String> getLikedBy() {

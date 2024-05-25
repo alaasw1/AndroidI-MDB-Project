@@ -97,9 +97,6 @@ public class ProfileFragment extends Fragment {
         // Set click listener to change profile picture
         imv_propic.setOnClickListener(v -> openImagePicker());
 
-        // Set click listeners for cards
-        cardWatchlist.setOnClickListener(v -> navigateToWatchlist());
-        cardFavorites.setOnClickListener(v -> navigateToFavorites());
 
         // Fetch watchlist and favorites data
         fetchWatchlistData();
@@ -257,13 +254,5 @@ public class ProfileFragment extends Fragment {
                 weight
         );
         return params;
-    }
-
-    private void navigateToWatchlist() {
-        // Navigation logic to WatchlistFragment
-    }
-
-    private void navigateToFavorites() {
-        // Navigation logic to FavoritesFragment
     }
 }

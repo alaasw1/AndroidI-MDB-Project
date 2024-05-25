@@ -90,7 +90,6 @@ public class ReviewActivity extends AppCompatActivity {
                 });
     }
 
-
     private void addReview(String content) {
         String userId = currentUser.getUid();
         String userName = currentUser.getDisplayName();

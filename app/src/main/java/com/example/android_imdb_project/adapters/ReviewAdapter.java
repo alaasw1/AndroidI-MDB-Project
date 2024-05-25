@@ -1,6 +1,7 @@
 package com.example.android_imdb_project.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,26 +58,16 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
         Glide.with(context).load(review.getUserProfilePicture()).into(holder.ivUserProfilePicture);
 
+        // Update button styles based on user action
+        updateButtonStyles(holder, review);
+
         holder.ibLike.setOnClickListener(v -> {
             Log.d(TAG, "Like button clicked for reviewId: " + review.getReviewId());
             if (movieId == null || review.getReviewId() == null) {
                 Log.e(TAG, "movieId or reviewId is null");
                 return;
             }
-            if (!review.getLikedBy().contains(currentUser.getUid())) {
-                review.setLikes(review.getLikes() + 1);
-                review.getLikedBy().add(currentUser.getUid());
-                db.collection("movies")
-                        .document(movieId)
-                        .collection("reviews")
-                        .document(review.getReviewId())
-                        .update("likes", review.getLikes(), "likedBy", review.getLikedBy())
-                        .addOnSuccessListener(aVoid -> holder.tvLikes.setText(String.valueOf(review.getLikes())))
-                        .addOnFailureListener(e -> {
-                            review.setLikes(review.getLikes() - 1);
-                            review.getLikedBy().remove(currentUser.getUid());
-                        });
-            }
+            handleLikeDislikeAction(review, holder, true);
         });
 
         holder.ibDislike.setOnClickListener(v -> {
@@ -85,20 +76,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
                 Log.e(TAG, "movieId or reviewId is null");
                 return;
             }
-            if (!review.getDislikedBy().contains(currentUser.getUid())) {
-                review.setDislikes(review.getDislikes() + 1);
-                review.getDislikedBy().add(currentUser.getUid());
-                db.collection("movies")
-                        .document(movieId)
-                        .collection("reviews")
-                        .document(review.getReviewId())
-                        .update("dislikes", review.getDislikes(), "dislikedBy", review.getDislikedBy())
-                        .addOnSuccessListener(aVoid -> holder.tvDislikes.setText(String.valueOf(review.getDislikes())))
-                        .addOnFailureListener(e -> {
-                            review.setDislikes(review.getDislikes() - 1);
-                            review.getDislikedBy().remove(currentUser.getUid());
-                        });
-            }
+            handleLikeDislikeAction(review, holder, false);
         });
 
         if (review.getUserId().equals(currentUser.getUid())) {
@@ -122,6 +100,72 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             });
         } else {
             holder.ibDelete.setVisibility(View.GONE);
+        }
+    }
+
+    private void handleLikeDislikeAction(Review review, ReviewViewHolder holder, boolean isLike) {
+        if (isLike) {
+            if (!review.getLikedBy().contains(currentUser.getUid())) {
+                if (review.getDislikedBy().contains(currentUser.getUid())) {
+                    review.setDislikes(review.getDislikes() - 1);
+                    review.getDislikedBy().remove(currentUser.getUid());
+                }
+                review.setLikes(review.getLikes() + 1);
+                review.getLikedBy().add(currentUser.getUid());
+            } else {
+                review.setLikes(review.getLikes() - 1);
+                review.getLikedBy().remove(currentUser.getUid());
+            }
+        } else {
+            if (!review.getDislikedBy().contains(currentUser.getUid())) {
+                if (review.getLikedBy().contains(currentUser.getUid())) {
+                    review.setLikes(review.getLikes() - 1);
+                    review.getLikedBy().remove(currentUser.getUid());
+                }
+                review.setDislikes(review.getDislikes() + 1);
+                review.getDislikedBy().add(currentUser.getUid());
+            } else {
+                review.setDislikes(review.getDislikes() - 1);
+                review.getDislikedBy().remove(currentUser.getUid());
+            }
+        }
+
+        db.collection("movies")
+                .document(movieId)
+                .collection("reviews")
+                .document(review.getReviewId())
+                .update("likes", review.getLikes(), "dislikes", review.getDislikes(),
+                        "likedBy", review.getLikedBy(), "dislikedBy", review.getDislikedBy())
+                .addOnSuccessListener(aVoid -> {
+                    holder.tvLikes.setText(String.valueOf(review.getLikes()));
+                    holder.tvDislikes.setText(String.valueOf(review.getDislikes()));
+                    updateButtonStyles(holder, review);
+                })
+                .addOnFailureListener(e -> {
+                    if (isLike) {
+                        review.setLikes(review.getLikes() - 1);
+                        review.getLikedBy().remove(currentUser.getUid());
+                    } else {
+                        review.setDislikes(review.getDislikes() - 1);
+                        review.getDislikedBy().remove(currentUser.getUid());
+                    }
+                });
+    }
+
+    private void updateButtonStyles(ReviewViewHolder holder, Review review) {
+        if (review.getLikedBy().contains(currentUser.getUid())) {
+            holder.ibLike.setColorFilter(Color.BLUE);
+            holder.ibLike.setAlpha(1.0f);
+            holder.ibDislike.setAlpha(0.5f);
+        } else if (review.getDislikedBy().contains(currentUser.getUid())) {
+            holder.ibDislike.setColorFilter(Color.BLUE);
+            holder.ibDislike.setAlpha(1.0f);
+            holder.ibLike.setAlpha(0.5f);
+        } else {
+            holder.ibLike.setColorFilter(null);
+            holder.ibDislike.setColorFilter(null);
+            holder.ibLike.setAlpha(1.0f);
+            holder.ibDislike.setAlpha(1.0f);
         }
     }
 
