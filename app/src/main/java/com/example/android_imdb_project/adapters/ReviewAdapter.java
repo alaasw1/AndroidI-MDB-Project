@@ -52,24 +52,42 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         Glide.with(context).load(review.getUserProfilePicture()).into(holder.ivUserProfilePicture);
 
         holder.ibLike.setOnClickListener(v -> {
-            // Handle like logic
+            review.setLikes(review.getLikes() + 1);
+            db.collection("movies")
+                    .document(review.getMovieId())
+                    .collection("reviews")
+                    .document(review.getReviewId())
+                    .update("likes", review.getLikes())
+                    .addOnSuccessListener(aVoid -> holder.tvLikes.setText(String.valueOf(review.getLikes())))
+                    .addOnFailureListener(e -> review.setLikes(review.getLikes() - 1));
         });
 
         holder.ibDislike.setOnClickListener(v -> {
-            // Handle dislike logic
+            review.setDislikes(review.getDislikes() + 1);
+            db.collection("movies")
+                    .document(review.getMovieId())
+                    .collection("reviews")
+                    .document(review.getReviewId())
+                    .update("dislikes", review.getDislikes())
+                    .addOnSuccessListener(aVoid -> holder.tvDislikes.setText(String.valueOf(review.getDislikes())))
+                    .addOnFailureListener(e -> review.setDislikes(review.getDislikes() - 1));
         });
 
         if (review.getUserId().equals(currentUser.getUid())) {
-            holder.ibEdit.setVisibility(View.VISIBLE);
             holder.ibDelete.setVisibility(View.VISIBLE);
-            holder.ibEdit.setOnClickListener(v -> {
-                // Handle edit logic
-            });
             holder.ibDelete.setOnClickListener(v -> {
-                // Handle delete logic
+                db.collection("movies")
+                        .document(review.getMovieId())
+                        .collection("reviews")
+                        .document(review.getReviewId())
+                        .delete()
+                        .addOnSuccessListener(aVoid -> {
+                            reviews.remove(position);
+                            notifyItemRemoved(position);
+                            notifyItemRangeChanged(position, reviews.size());
+                        });
             });
         } else {
-            holder.ibEdit.setVisibility(View.GONE);
             holder.ibDelete.setVisibility(View.GONE);
         }
     }
@@ -82,7 +100,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     public static class ReviewViewHolder extends RecyclerView.ViewHolder {
         public ImageView ivUserProfilePicture;
         public TextView tvUserName, tvContent, tvLikes, tvDislikes;
-        public ImageButton ibLike, ibDislike, ibEdit, ibDelete;
+        public ImageButton ibLike, ibDislike, ibDelete;
 
         public ReviewViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -93,7 +111,6 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             tvDislikes = itemView.findViewById(R.id.tv_dislikes);
             ibLike = itemView.findViewById(R.id.ib_like);
             ibDislike = itemView.findViewById(R.id.ib_dislike);
-            ibEdit = itemView.findViewById(R.id.ib_edit);
             ibDelete = itemView.findViewById(R.id.ib_delete);
         }
     }

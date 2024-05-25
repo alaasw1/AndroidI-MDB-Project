@@ -71,15 +71,15 @@
             android:paddingLeft="8dp"
             android:textSize="14sp" />
 
-        <ImageButton
-            android:id="@+id/ib_edit"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_edit"
-            android:contentDescription="Edit"
-            android:paddingLeft="16dp"
-            android:visibility="gone"
-            android:scaleType="fitCenter" />
+<!--        <ImageButton-->
+<!--            android:id="@+id/ib_edit"-->
+<!--            android:layout_width="40dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:src="@drawable/ic_edit"-->
+<!--            android:contentDescription="Edit"-->
+<!--            android:paddingLeft="16dp"-->
+<!--            android:visibility="gone"-->
+<!--            android:scaleType="fitCenter" />-->
 
         <ImageButton
             android:id="@+id/ib_delete"

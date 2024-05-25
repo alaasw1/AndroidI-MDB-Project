@@ -90,7 +90,7 @@ public class ReviewActivity extends AppCompatActivity {
         String userProfilePicture = currentUser.getPhotoUrl().toString();
         long timestamp = System.currentTimeMillis();
 
-        Review review = new Review(null, userId, userName, userProfilePicture, content, timestamp);
+        Review review = new Review(null, userId, userName, userProfilePicture, content, timestamp, movieId); // Pass movieId
 
         db.collection("movies")
                 .document(movieId)
@@ -98,15 +98,22 @@ public class ReviewActivity extends AppCompatActivity {
                 .add(review)
                 .addOnSuccessListener(documentReference -> {
                     review.setReviewId(documentReference.getId());
-                    reviewList.add(review);
-                    adapter.notifyDataSetChanged();
+                    db.collection("movies")
+                            .document(movieId)
+                            .collection("reviews")
+                            .document(review.getReviewId())
+                            .set(review)
+                            .addOnSuccessListener(aVoid -> {
+                                reviewList.add(review);
+                                adapter.notifyDataSetChanged();
+                            });
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Error adding review", Toast.LENGTH_SHORT).show());
     }
 
     private void addDefaultReviews() {
-        Review review1 = new Review("1", "user1", "User One", "https://example.com/user1.jpg", "This is a great movie!", System.currentTimeMillis());
-        Review review2 = new Review("2", "user2", "User Two", "https://example.com/user2.jpg", "I really enjoyed this movie.", System.currentTimeMillis());
+        Review review1 = new Review("1", "user1", "User One", "https://example.com/user1.jpg", "This is a great movie!", System.currentTimeMillis(), movieId);
+        Review review2 = new Review("2", "user2", "User Two", "https://example.com/user2.jpg", "I really enjoyed this movie.", System.currentTimeMillis(), movieId);
 
         reviewList.add(review1);
         reviewList.add(review2);
