@@ -62,8 +62,8 @@ public class WatchlistFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Set isFavoritesFragment and isWatchlistFragment to true to indicate buttons should be hidden and delete button shown
-        adapter = new MovieAdapter(getContext(), movieList, false, true);
+        // Set isFavoritesFragment to false, isWatchlistFragment to true, and showReviewButton to false
+        adapter = new MovieAdapter(getContext(), movieList, false, true, false);
         recyclerView.setAdapter(adapter);
 
         fetchWatchlistMovies();

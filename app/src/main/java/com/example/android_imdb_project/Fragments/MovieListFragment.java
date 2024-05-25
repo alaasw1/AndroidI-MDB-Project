@@ -62,8 +62,8 @@ public class MovieListFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Set isFavoritesFragment and isWatchlistFragment to false
-        adapter = new MovieAdapter(getContext(), filteredMovieList, false, false);
+        // Set isFavoritesFragment and isWatchlistFragment to false, and showReviewButton to true
+        adapter = new MovieAdapter(getContext(), filteredMovieList, false, false, true);
         recyclerView.setAdapter(adapter);
 
         editTextFilter = view.findViewById(R.id.edit_text_filter);

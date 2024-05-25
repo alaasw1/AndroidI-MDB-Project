@@ -35,14 +35,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private FirebaseUser currentUser;
     private boolean isFavoritesFragment;
     private boolean isWatchlistFragment;
+    private boolean showReviewButton; // Add this flag
 
-    public MovieAdapter(Context context, List<Movie> movies, boolean isFavoritesFragment, boolean isWatchlistFragment) {
+    public MovieAdapter(Context context, List<Movie> movies, boolean isFavoritesFragment, boolean isWatchlistFragment, boolean showReviewButton) {
         this.context = context;
         this.movies = movies;
         this.db = FirebaseFirestore.getInstance();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
         this.isFavoritesFragment = isFavoritesFragment;
         this.isWatchlistFragment = isWatchlistFragment;
+        this.showReviewButton = showReviewButton; // Initialize the flag
     }
 
     @NonNull
@@ -88,12 +90,17 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             holder.buttonWatchlist.setOnClickListener(v -> addToCollection("watchlist", movie));
         }
 
-        holder.buttonReview.setOnClickListener(v -> {
-            Intent intent = new Intent(context, ReviewActivity.class);
-            intent.putExtra("movieId", movie.getId());
-            intent.putExtra("movieName", movie.getName()); // Add movieName to the intent
-            context.startActivity(intent);
-        });
+        if (showReviewButton) {
+            holder.buttonReview.setVisibility(View.VISIBLE);
+            holder.buttonReview.setOnClickListener(v -> {
+                Intent intent = new Intent(context, ReviewActivity.class);
+                intent.putExtra("movieId", movie.getId());
+                intent.putExtra("movieName", movie.getName()); // Add movieName to the intent
+                context.startActivity(intent);
+            });
+        } else {
+            holder.buttonReview.setVisibility(View.GONE);
+        }
     }
 
     private void addToCollection(String collectionName, Movie movie) {
