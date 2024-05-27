@@ -73,9 +73,7 @@ public class ReviewActivity extends AppCompatActivity {
                 Toast.makeText(this, "Review cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
-
-        // Add default reviews for testing
-        addDefaultReviews();
+        
     }
 
     private void fetchReviews() {
@@ -127,13 +125,5 @@ public class ReviewActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Error adding review", Toast.LENGTH_SHORT).show());
     }
 
-    private void addDefaultReviews() {
-        Review review1 = new Review("1", "user1", "User One", "https://example.com/user1.jpg", "This is a great movie!", System.currentTimeMillis(), movieId);
-        Review review2 = new Review("2", "user2", "User Two", "https://example.com/user2.jpg", "I really enjoyed this movie.", System.currentTimeMillis(), movieId);
 
-        reviewList.add(review1);
-        reviewList.add(review2);
-
-        adapter.notifyDataSetChanged();
-    }
 }
