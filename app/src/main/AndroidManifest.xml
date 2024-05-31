@@ -27,9 +27,6 @@
             android:name=".SignIn.SignInActivity"
             android:exported="false" />
         <activity
-            android:name=".SignIn.ProfileActivity"
-            android:exported="false" />
-        <activity
             android:name=".SignIn.RegisterActivity"
             android:exported="false" />
         <activity
