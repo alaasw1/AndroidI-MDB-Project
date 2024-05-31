@@ -31,9 +31,12 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A fragment representing the user's profile.
+ */
 public class ProfileFragment extends Fragment {
 
-    private static final int PICK_IMAGE = 1;
+    private static final int PICK_IMAGE = 1; // Request code for image picker
     private static final String TAG = "ProfileFragment";
     private FirebaseAuth mAuth;
     private FirebaseStorage mStorage;
@@ -45,8 +48,10 @@ public class ProfileFragment extends Fragment {
     private ImageView ivWatchlist1, ivWatchlist2, ivWatchlist3;
     private ImageView ivFavorites1, ivFavorites2, ivFavorites3;
 
+    /**
+     * Required empty public constructor.
+     */
     public ProfileFragment() {
-        // Required empty public constructor
     }
 
     @Nullable
@@ -81,7 +86,7 @@ public class ProfileFragment extends Fragment {
             if (currentUser.getPhotoUrl() != null) {
                 Glide.with(this).load(currentUser.getPhotoUrl()).into(imv_propic);
             } else {
-                imv_propic.setImageResource(R.drawable.profile_circle_icon);
+                imv_propic.setImageResource(R.drawable.profile_circle_icon); // Default profile icon
             }
 
             String displayName = currentUser.getDisplayName();
@@ -96,7 +101,6 @@ public class ProfileFragment extends Fragment {
         // Set click listener to change profile picture
         imv_propic.setOnClickListener(v -> openImagePicker());
 
-
         // Fetch watchlist and favorites data
         fetchWatchlistData();
         fetchFavoritesData();
@@ -104,6 +108,9 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Opens the image picker for the user to select a new profile picture.
+     */
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -121,6 +128,11 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Uploads the selected image to Firebase Storage and updates the user's profile picture.
+     *
+     * @param imageUri The URI of the selected image.
+     */
     private void uploadImageToFirebase(Uri imageUri) {
         StorageReference storageReference = mStorage.getReference()
                 .child("profile_images")
@@ -136,6 +148,11 @@ public class ProfileFragment extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Image upload failed", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Updates the user's profile picture in Firebase Authentication.
+     *
+     * @param downloadUri The URI of the uploaded profile picture.
+     */
     private void updateProfilePicture(Uri downloadUri) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
@@ -154,6 +171,9 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Fetches the watchlist data from Firestore and updates the UI.
+     */
     private void fetchWatchlistData() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -183,6 +203,9 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
+    /**
+     * Fetches the favorites data from Firestore and updates the UI.
+     */
     private void fetchFavoritesData() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -212,6 +235,15 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
+    /**
+     * Displays movie images in the given ImageViews. Shows default image if no movies are available.
+     *
+     * @param movieUrls The list of movie URLs.
+     * @param iv1       The first ImageView.
+     * @param iv2       The second ImageView.
+     * @param iv3       The third ImageView.
+     * @param defaultImage The default image resource ID.
+     */
     private void displayMovieImages(List<String> movieUrls, ImageView iv1, ImageView iv2, ImageView iv3, int defaultImage) {
         int size = movieUrls.size();
         iv1.setVisibility(View.INVISIBLE);
@@ -220,32 +252,38 @@ public class ProfileFragment extends Fragment {
 
         if (size == 1) {
             iv1.setVisibility(View.VISIBLE);
-            iv1.setLayoutParams(createLayoutParams(100));
+            iv1.setLayoutParams(createLayoutParams(100)); // Weight of 100
             Glide.with(this).load(movieUrls.get(0)).into(iv1);
         } else if (size == 2) {
             iv1.setVisibility(View.VISIBLE);
             iv2.setVisibility(View.VISIBLE);
-            iv1.setLayoutParams(createLayoutParams(50));
-            iv2.setLayoutParams(createLayoutParams(50));
+            iv1.setLayoutParams(createLayoutParams(50)); // Weight of 50
+            iv2.setLayoutParams(createLayoutParams(50)); // Weight of 50
             Glide.with(this).load(movieUrls.get(0)).into(iv1);
             Glide.with(this).load(movieUrls.get(1)).into(iv2);
         } else if (size >= 3) {
             iv1.setVisibility(View.VISIBLE);
             iv2.setVisibility(View.VISIBLE);
             iv3.setVisibility(View.VISIBLE);
-            iv1.setLayoutParams(createLayoutParams(33));
-            iv2.setLayoutParams(createLayoutParams(33));
-            iv3.setLayoutParams(createLayoutParams(33));
+            iv1.setLayoutParams(createLayoutParams(33)); // Weight of 33
+            iv2.setLayoutParams(createLayoutParams(33)); // Weight of 33
+            iv3.setLayoutParams(createLayoutParams(33)); // Weight of 33
             Glide.with(this).load(movieUrls.get(0)).into(iv1);
             Glide.with(this).load(movieUrls.get(1)).into(iv2);
             Glide.with(this).load(movieUrls.get(2)).into(iv3);
         } else {
             iv1.setVisibility(View.VISIBLE);
-            iv1.setLayoutParams(createLayoutParams(100));
-            iv1.setImageResource(defaultImage);
+            iv1.setLayoutParams(createLayoutParams(100)); // Weight of 100
+            iv1.setImageResource(defaultImage); // Default image
         }
     }
 
+    /**
+     * Creates layout parameters for an ImageView with the specified weight.
+     *
+     * @param weight The weight for the ImageView.
+     * @return The layout parameters.
+     */
     private LinearLayout.LayoutParams createLayoutParams(int weight) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 0,

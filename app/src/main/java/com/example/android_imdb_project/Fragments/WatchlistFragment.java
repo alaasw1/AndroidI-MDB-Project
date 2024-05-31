@@ -21,6 +21,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A simple {@link Fragment} subclass representing the user's watchlist.
+ */
 public class WatchlistFragment extends Fragment {
     private static final String TAG = "WatchlistFragment";
     private RecyclerView recyclerView;
@@ -29,24 +32,16 @@ public class WatchlistFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
 
+    /**
+     * Required empty public constructor.
+     */
     public WatchlistFragment() {
-        // Required empty public constructor
-    }
-
-    public static WatchlistFragment newInstance(String param1, String param2) {
-        WatchlistFragment fragment = new WatchlistFragment();
-        Bundle args = new Bundle();
-        args.putString("param1", param1);
-        args.putString("param2", param2);
-        fragment.setArguments(args);
-        return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-        }
+        // Initialize Firestore and FirebaseAuth
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
     }
@@ -54,18 +49,25 @@ public class WatchlistFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_watchlist, container, false);
 
+        // Initialize RecyclerView
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        // Initialize MovieAdapter with isWatchlistFragment set to true
         adapter = new MovieAdapter(getContext(), movieList, false, true, false);
         recyclerView.setAdapter(adapter);
 
+        // Fetch movies in the user's watchlist
         fetchWatchlistMovies();
 
         return view;
     }
 
+    /**
+     * Fetches movies from the user's watchlist in Firestore and updates the RecyclerView.
+     */
     private void fetchWatchlistMovies() {
         if (currentUser != null) {
             db.collection("users")

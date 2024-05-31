@@ -25,6 +25,9 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+/**
+ * RegisterActivity handles the user registration process.
+ */
 public class RegisterActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private EditText et_register_uname, et_register_email, et_register_passwd;
@@ -41,6 +44,13 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             });
 
+    /**
+     * Called when the activity is first created.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,9 +81,16 @@ public class RegisterActivity extends AppCompatActivity {
         tv_go_to_sign_in.setOnClickListener(view -> {
             startActivity(new Intent(RegisterActivity.this, SignInActivity.class));
         });
-
     }
 
+    /**
+     * Validates the input fields for registration.
+     *
+     * @param userName  The username entered by the user.
+     * @param userEmail The email entered by the user.
+     * @param userPasswd The password entered by the user.
+     * @return True if all inputs are valid, false otherwise.
+     */
     private boolean validateInputs(String userName, String userEmail, String userPasswd) {
         if (userName.isEmpty() || userEmail.isEmpty() || userPasswd.isEmpty()) {
             if (userName.isEmpty()) {
@@ -90,6 +107,13 @@ public class RegisterActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Registers a new user with Firebase Authentication.
+     *
+     * @param userName  The username entered by the user.
+     * @param userEmail The email entered by the user.
+     * @param userPasswd The password entered by the user.
+     */
     private void registerUser(String userName, String userEmail, String userPasswd) {
         mAuth.createUserWithEmailAndPassword(userEmail, userPasswd).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
@@ -99,6 +123,7 @@ public class RegisterActivity extends AppCompatActivity {
                         uploadImageToFirebaseStorage(firebaseUser, imageUri, userName);
                     } else {
                         Uri defaultImageUri = Uri.parse("https://firebasestorage.googleapis.com/v0/b/android-imdb-project.appspot.com/o/profile_images%2Fprofile_circle_icon.png?alt=media&token=f458abd3-d604-427f-bb3a-0e40c6b384ed");
+                        // Use a default profile image URL if no image is selected
                         updateUserProfile(firebaseUser, defaultImageUri, userName);
                     }
                 } else {
@@ -110,6 +135,13 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Uploads the selected image to Firebase Storage.
+     *
+     * @param firebaseUser The currently authenticated Firebase user.
+     * @param imageUri The URI of the image to be uploaded.
+     * @param userName The username entered by the user.
+     */
     private void uploadImageToFirebaseStorage(FirebaseUser firebaseUser, Uri imageUri, String userName) {
         Log.d("RegisterActivity", "Attempting to upload image: " + imageUri);
         StorageReference profileImageRef = FirebaseStorage.getInstance().getReference("profilepics/" + firebaseUser.getUid() + ".jpg");
@@ -127,6 +159,13 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Updates the user profile with the given photo URI and username.
+     *
+     * @param user The currently authenticated Firebase user.
+     * @param photoUri The URI of the profile photo.
+     * @param name The username entered by the user.
+     */
     private void updateUserProfile(FirebaseUser user, Uri photoUri, String name) {
         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                 .setDisplayName(name)
@@ -145,6 +184,9 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Navigates to the SignInActivity after successful registration.
+     */
     private void navigateToSignIn() {
         Intent intent = new Intent(RegisterActivity.this, SignInActivity.class);
         startActivity(intent);

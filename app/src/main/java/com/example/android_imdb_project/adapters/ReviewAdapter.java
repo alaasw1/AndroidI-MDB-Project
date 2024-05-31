@@ -22,6 +22,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
+/**
+ * Adapter class for displaying a list of reviews in a RecyclerView.
+ */
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder> {
 
     private static final String TAG = "ReviewAdapter";
@@ -31,6 +34,13 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     private FirebaseUser currentUser;
     private String movieId;
 
+    /**
+     * Constructor for ReviewAdapter.
+     *
+     * @param context  The context in which the adapter is used.
+     * @param reviews  The list of reviews to display.
+     * @param movieId  The ID of the movie to which the reviews belong.
+     */
     public ReviewAdapter(Context context, List<Review> reviews, String movieId) {
         this.context = context;
         this.reviews = reviews;
@@ -56,13 +66,15 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         holder.tvLikes.setText(String.valueOf(review.getLikes()));
         holder.tvDislikes.setText(String.valueOf(review.getDislikes()));
 
+        // Load user profile picture using Glide
         Glide.with(context)
                 .load(review.getUserProfilePicture())
-                .placeholder(R.drawable.ic_profile)  // Your placeholder image
+                .placeholder(R.drawable.ic_profile)  // Placeholder image
                 .into(holder.ivUserProfilePicture);
 
         updateButtonStyles(holder, review);
 
+        // Handle like button click
         holder.ibLike.setOnClickListener(v -> {
             Log.d(TAG, "Like button clicked for reviewId: " + review.getReviewId());
             if (movieId == null || review.getReviewId() == null) {
@@ -72,6 +84,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             handleLikeDislikeAction(review, holder, true);
         });
 
+        // Handle dislike button click
         holder.ibDislike.setOnClickListener(v -> {
             Log.d(TAG, "Dislike button clicked for reviewId: " + review.getReviewId());
             if (movieId == null || review.getReviewId() == null) {
@@ -81,6 +94,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             handleLikeDislikeAction(review, holder, false);
         });
 
+        // Handle delete button visibility and click
         if (review.getUserId().equals(currentUser.getUid())) {
             holder.ibDelete.setVisibility(View.VISIBLE);
             holder.ibDelete.setOnClickListener(v -> {
@@ -105,6 +119,13 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         }
     }
 
+    /**
+     * Handles the like or dislike action for a review.
+     *
+     * @param review   The review to be liked or disliked.
+     * @param holder   The ViewHolder containing the views to be updated.
+     * @param isLike   True if the action is a like, false if it is a dislike.
+     */
     private void handleLikeDislikeAction(Review review, ReviewViewHolder holder, boolean isLike) {
         if (isLike) {
             if (!review.getLikedBy().contains(currentUser.getUid())) {
@@ -154,6 +175,12 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
                 });
     }
 
+    /**
+     * Updates the styles of the like and dislike buttons based on user actions.
+     *
+     * @param holder  The ViewHolder containing the buttons to be updated.
+     * @param review  The review object to check for likes and dislikes.
+     */
     private void updateButtonStyles(ReviewViewHolder holder, Review review) {
         if (review.getLikedBy().contains(currentUser.getUid())) {
             holder.ibLike.setColorFilter(Color.BLUE);
@@ -176,11 +203,19 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         return reviews.size();
     }
 
+    /**
+     * ViewHolder class for displaying individual review items in the RecyclerView.
+     */
     public static class ReviewViewHolder extends RecyclerView.ViewHolder {
         public ImageView ivUserProfilePicture;
         public TextView tvUserName, tvContent, tvLikes, tvDislikes;
         public ImageButton ibLike, ibDislike, ibDelete;
 
+        /**
+         * Constructor for ReviewViewHolder.
+         *
+         * @param itemView The view of the individual review item.
+         */
         public ReviewViewHolder(@NonNull View itemView) {
             super(itemView);
             ivUserProfilePicture = itemView.findViewById(R.id.iv_user_profile_picture);

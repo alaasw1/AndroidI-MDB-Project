@@ -43,10 +43,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * A fragment representing the list of movies.
+ */
 public class MovieListFragment extends Fragment {
     private static final String TAG = "MovieListFragment";
-    private static final String TMDB_API_KEY = "9b78a0198d671648f859770a80094412";
-    private static final int RETRY_DELAY_MS = 1000;
+    private static final String TMDB_API_KEY = "9b78a0198d671648f859770a80094412"; // Your TMDB API Key
+    private static final int RETRY_DELAY_MS = 1000; // Retry delay in milliseconds
     private RecyclerView recyclerView;
     private MovieAdapter adapter;
     private List<Movie> movieList = new ArrayList<>();
@@ -55,6 +58,18 @@ public class MovieListFragment extends Fragment {
     private EditText editTextFilter;
     private Handler handler = new Handler();
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     *                 any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's
+     *                  UI should be attached to. The fragment should not add the view itself,
+     *                  but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
+     * @return Return the View for the fragment's UI, or null.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -95,6 +110,9 @@ public class MovieListFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Fetches the list of movies from Firestore.
+     */
     private void fetchMovies() {
         db.collection("movies")
                 .get()
@@ -122,6 +140,11 @@ public class MovieListFragment extends Fragment {
                 });
     }
 
+    /**
+     * Filters the list of movies based on the query.
+     *
+     * @param query The search query entered by the user.
+     */
     private void filterMovies(String query) {
         filteredMovieList.clear();
         if (query.isEmpty()) {
@@ -135,6 +158,9 @@ public class MovieListFragment extends Fragment {
         adapter.notifyDataSetChanged();
     }
 
+    /**
+     * Shows a dialog to add a new movie.
+     */
     private void showAddMovieDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Add Movie");
@@ -162,6 +188,11 @@ public class MovieListFragment extends Fragment {
         builder.show();
     }
 
+    /**
+     * Adds a movie by its name using The Movie Database (TMDB) API.
+     *
+     * @param movieName The name of the movie to add.
+     */
     private void addMovieByName(String movieName) {
         new Thread(() -> {
             try {
@@ -200,6 +231,11 @@ public class MovieListFragment extends Fragment {
         }).start();
     }
 
+    /**
+     * Checks if a movie already exists in Firestore and adds it if it doesn't.
+     *
+     * @param movie The movie to check and add.
+     */
     private void checkIfMovieExistsAndAdd(Movie movie) {
         String lowerCaseMovieName = movie.getName().toLowerCase();
         db.collection("movies")
@@ -231,6 +267,9 @@ public class MovieListFragment extends Fragment {
                 });
     }
 
+    /**
+     * Adds example movies to Firestore if the collection is empty.
+     */
     private void addMoviesOnce() {
         db.collection("movies").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -260,6 +299,11 @@ public class MovieListFragment extends Fragment {
         });
     }
 
+    /**
+     * Adds a movie to Firestore if it doesn't already exist.
+     *
+     * @param movie The movie to add.
+     */
     private void addMovieIfNotExists(Map<String, Object> movie) {
         String lowerCaseMovieName = movie.get("name").toString().toLowerCase();
         db.collection("movies")
@@ -292,6 +336,16 @@ public class MovieListFragment extends Fragment {
                 });
     }
 
+    /**
+     * Creates a map representing a movie.
+     *
+     * @param name The name of the movie.
+     * @param releaseDate The release date of the movie.
+     * @param description The description of the movie.
+     * @param rate The rating of the movie.
+     * @param photoUrl The photo URL of the movie.
+     * @return A map representing the movie.
+     */
     private Map<String, Object> createMovie(String name, String releaseDate, String description, double rate, String photoUrl) {
         Map<String, Object> movie = new HashMap<>();
         movie.put("name", name);
@@ -303,6 +357,12 @@ public class MovieListFragment extends Fragment {
         return movie;
     }
 
+    /**
+     * Creates a map representing a movie.
+     *
+     * @param movie The movie object.
+     * @return A map representing the movie.
+     */
     private Map<String, Object> createMovieMap(Movie movie) {
         Map<String, Object> movieMap = new HashMap<>();
         movieMap.put("name", movie.getName());

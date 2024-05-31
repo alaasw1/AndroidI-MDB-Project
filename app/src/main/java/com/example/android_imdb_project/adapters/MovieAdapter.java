@@ -27,6 +27,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
+/**
+ * Adapter class for displaying a list of movies in a RecyclerView.
+ */
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
     private static final String TAG = "MovieAdapter";
     private List<Movie> movies;
@@ -37,6 +40,15 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private boolean isWatchlistFragment;
     private boolean showReviewButton;
 
+    /**
+     * Constructor for MovieAdapter.
+     *
+     * @param context             The context in which the adapter is used.
+     * @param movies              The list of movies to display.
+     * @param isFavoritesFragment Indicates if the adapter is used in the favorites fragment.
+     * @param isWatchlistFragment Indicates if the adapter is used in the watchlist fragment.
+     * @param showReviewButton    Indicates if the review button should be shown.
+     */
     public MovieAdapter(Context context, List<Movie> movies, boolean isFavoritesFragment, boolean isWatchlistFragment, boolean showReviewButton) {
         this.context = context;
         this.movies = movies;
@@ -62,6 +74,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         holder.movieDescription.setText(movie.getDescription());
         holder.movieRate.setText(String.valueOf(movie.getRate()));
 
+        // Setting placeholder and error images using Glide
         RequestOptions requestOptions = new RequestOptions()
                 .placeholder(R.drawable.placeholder) // Placeholder image
                 .error(R.drawable.error); // Error image
@@ -100,6 +113,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         });
     }
 
+    /**
+     * Adds a movie to the specified Firestore collection.
+     *
+     * @param collectionName The name of the collection (favorites or watchlist).
+     * @param movie          The movie to add.
+     */
     private void addToCollection(String collectionName, Movie movie) {
         if (currentUser != null) {
             db.collection("users")
@@ -139,6 +158,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
     }
 
+    /**
+     * Removes a movie from the specified Firestore collection.
+     *
+     * @param collectionName The name of the collection (favorites or watchlist).
+     * @param movie          The movie to remove.
+     */
     private void removeFromCollection(String collectionName, Movie movie) {
         if (currentUser != null) {
             db.collection("users")
@@ -171,11 +196,19 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         return movies.size();
     }
 
+    /**
+     * ViewHolder class for displaying individual movie items in the RecyclerView.
+     */
     public static class MovieViewHolder extends RecyclerView.ViewHolder {
         public TextView movieName, releaseDate, movieDescription, movieRate;
         public ImageView moviePhoto;
         public Button buttonFavorite, buttonWatchlist, buttonDelete, buttonReview;
 
+        /**
+         * Constructor for MovieViewHolder.
+         *
+         * @param itemView The view of the individual movie item.
+         */
         public MovieViewHolder(@NonNull View itemView) {
             super(itemView);
             movieName = itemView.findViewById(R.id.movie_name);

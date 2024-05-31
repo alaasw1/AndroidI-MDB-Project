@@ -21,6 +21,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A fragment representing the list of favorite movies.
+ */
 public class FavoritesFragment extends Fragment {
     private static final String TAG = "FavoritesFragment";
     private RecyclerView recyclerView;
@@ -29,28 +32,38 @@ public class FavoritesFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
 
+    /**
+     * Mandatory empty constructor for the fragment manager to instantiate the
+     * fragment (e.g. upon screen orientation changes).
+     */
     public FavoritesFragment() {
     }
 
-    public static FavoritesFragment newInstance(String param1, String param2) {
-        FavoritesFragment fragment = new FavoritesFragment();
-        Bundle args = new Bundle();
-        args.putString("param1", param1);
-        args.putString("param2", param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
+    /**
+     * Called to do initial creation of a fragment.
+     *
+     * @param savedInstanceState If the fragment is being re-created from
+     *                           a previous saved state, this is the state.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            // Fetch parameters from Bundle if needed
-        }
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
     }
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     *                 any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's
+     *                  UI should be attached to. The fragment should not add the view itself,
+     *                  but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
+     * @return Return the View for the fragment's UI, or null.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -66,6 +79,9 @@ public class FavoritesFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Fetches the list of favorite movies for the current user from Firestore.
+     */
     private void fetchFavoriteMovies() {
         if (currentUser != null) {
             db.collection("users")
